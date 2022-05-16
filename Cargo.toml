@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-directive = { path = "directive" }
+derive_directive = { path = "derive_directive" }
+directive_errors = { path = "directive_errors" }
 
 [workspace]
-members = ["directive"]
+members = ["derive_directive", "directive_errors"]

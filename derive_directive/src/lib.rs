@@ -12,7 +12,7 @@ mod parse;
 pub fn directive(args: TokenStream, input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
 
-    let kv = get_kv(args.clone()).unwrap();
+    let kv = get_kv(args).unwrap();
 
     let keyword = match kv.get("keyword") {
         Some(kw) => kw,
@@ -74,45 +74,42 @@ pub fn directive(args: TokenStream, input: TokenStream) -> TokenStream {
         _ => todo!(),
     };
 
+    let prefix = &keyword.value.trim_matches('\"');
+
     let tokens = quote! {
-        use thiserror::Error;
+        use directive_errors::DirectiveParseError;
 
-
-
-
-        pub struct Jump {
+        pub struct #ident {
             #(#f_nonopt_idents: #f_nonopt_tys,)*
             #(#f_opt_idents: #f_opt_tys,)*
         }
 
-        impl Jump {
-            fn parse(ctx: &std::primitive::str) -> std::result::Result<Self, DirectiveParseError> {
-                let mut tokens = ctx.split(",").map(std::primitive::str::trim);
+        impl #ident {
+            fn parse(ctx: &std::primitive::str) -> std::option::Option<std::result::Result<Self, DirectiveParseError>> {
+                if !ctx.starts_with(&format!("@{}", #prefix)) {
+                    return None;
+                }
 
+                let mut tokens = ctx.get(ctx.find('(').unwrap() + 1..ctx.rfind(')').unwrap()).unwrap().split(",").map(std::primitive::str::trim);
 
                 #(let #f_idents = tokens.next();)*
 
-                #(let #f_int_idents = #f_int_idents.map(|i| i.parse::<#f_int_tys>().unwrap());)*
+                #(let #f_int_idents = match #f_int_idents.map(|i| i.parse::<#f_int_tys>()) {
+                    Some(Err(e)) => return Some(Err(DirectiveParseError::CannotParse(format!("\"{}\"", #f_int_idents.unwrap().to_string()), stringify!(#f_int_tys).to_string(), e.to_string()))),
+                    Some(v) => Some(v.unwrap()),
+                    None => None,
+                };)*
 
                 #(let #f_nonopt_idents = #f_nonopt_idents.unwrap().to_owned();)*
                 #(let #f_opt_idents = #f_opt_idents.map(|x| x.to_owned());)*
 
-                Ok(Self {
+                Some(Ok(Self {
                     #(#f_nonopt_idents: #f_nonopt_idents,)*
                     #(#f_opt_idents: #f_opt_idents,)*
-                })
+                }))
             }
         }
     };
 
     tokens.into()
 }
-
-/*
-#[directive(keyword = "jump")]
-struct Jump {
-    endpointA: String,
-    endpointB: Option<String>
-    endpoint: Option<>
-}
-*/

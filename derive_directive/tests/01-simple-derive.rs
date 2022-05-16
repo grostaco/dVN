@@ -1,8 +1,8 @@
-use directive::directive;
+use derive_directive::directive;
 
 #[directive(keyword = "jump")]
 pub struct Jump {}
 
 fn main() {
-    let j = Jump {};
+    let _j = Jump {};
 }

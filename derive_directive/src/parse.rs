@@ -51,7 +51,7 @@ pub fn get_kv(input: TokenStream) -> Result<HashMap<String, Value>, KVParseError
             },
         );
 
-        let punct = match input.next() {
+        let _ = match input.next() {
             Some(punct) => match punct {
                 TokenTree::Punct(punct) => (punct.to_string(), punct.span()),
                 tree => return Err(KVParseError::UnexpectedTokenTree(tree)),
@@ -74,21 +74,3 @@ pub fn is_option(ty: &Type) -> bool {
         _ => false,
     }
 }
-
-// pub fn get_fields_type(fields: Fields) -> Option<Vec<Path>> {
-//     match fields {
-//         Fields::Named(named) => for field in named.named.iter() {
-//             match
-//         },
-//         Fields::Unnamed(_) => return None,
-//     }
-// }
-
-// macro_rules! type_is_option {
-//     ($ty:expr) => {
-//         match $ty {
-//             Type::Path(TypePath { path, .. }) => path.segments.first().unwrap().ident == "Option",
-//             _ => false,
-//         }
-//     };
-// }

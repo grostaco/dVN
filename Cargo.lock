@@ -3,14 +3,22 @@
 version = 3
 
 [[package]]
-name = "directive"
+name = "derive_directive"
 version = "0.1.0"
 dependencies = [
+ "directive_errors",
  "proc-macro2",
  "quote",
  "syn",
  "thiserror",
  "trybuild",
+]
+
+[[package]]
+name = "directive_errors"
+version = "0.1.0"
+dependencies = [
+ "thiserror",
 ]
 
 [[package]]
@@ -23,7 +31,8 @@ checksum = "9b919933a397b79c37e33b77bb2aa3dc8eb6e165ad809e58ff75bc7db2e34574"
 name = "image_rpg"
 version = "0.1.0"
 dependencies = [
- "directive",
+ "derive_directive",
+ "directive_errors",
 ]
 
 [[package]]

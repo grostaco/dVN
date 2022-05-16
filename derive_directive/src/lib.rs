@@ -100,7 +100,11 @@ pub fn directive(args: TokenStream, input: TokenStream) -> TokenStream {
                     None => None,
                 };)*
 
-                #(let #f_nonopt_idents = #f_nonopt_idents.unwrap().to_owned();)*
+                let mut pos = 1;
+                #(let #f_nonopt_idents = match #f_nonopt_idents {
+                    Some(v) => v.to_owned(),
+                    None => return Some(Err(DirectiveParseError::ExpectPositionalArgument(format!("\"{}\"", stringify!(#f_nonopt_idents)).to_string(), pos))),
+                }; pos += 1;)*
                 #(let #f_opt_idents = #f_opt_idents.map(|x| x.to_owned());)*
 
                 Some(Ok(Self {

@@ -7,6 +7,7 @@ pub struct Jump {
     endpoint_a: String,
     endpoint_b: u64,
     choice: Option<String>,
+    v: Option<i32>,
 }
 
 fn main() {
@@ -21,7 +22,9 @@ fn main() {
         }
     };
 
+    assert_eq!(j.v, None);
+
     assert_eq!(j.endpoint_a, "x.script");
     assert_eq!(j.endpoint_b, 4);
-    assert_eq!(j.choice, None);
+    //assert_eq!(j.choice, None);
 }

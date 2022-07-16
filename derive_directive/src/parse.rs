@@ -3,15 +3,14 @@ use std::collections::HashMap;
 use proc_macro::Span;
 use proc_macro::{TokenStream, TokenTree};
 use proc_macro2::Ident;
-use syn::{Type, TypePath};
+use syn::{Type, TypePath, PathArguments::AngleBracketed, AngleBracketedGenericArguments};
 
 use crate::errors::KVParseError;
 
 #[derive(Debug)]
 pub struct Value {
     pub key_span: Span,
-    pub value: String,
-    pub value_span: Span,
+    pub value: TokenTree,
 }
 pub fn get_kv(input: TokenStream) -> Result<HashMap<String, Value>, KVParseError> {
     let mut input = input.into_iter();
@@ -35,10 +34,11 @@ pub fn get_kv(input: TokenStream) -> Result<HashMap<String, Value>, KVParseError
         };
 
         let value = match input.next() {
-            Some(val) => match val {
-                TokenTree::Literal(literal) => (literal.to_string(), literal.span()),
-                val => return Err(KVParseError::UnexpectedTokenTree(val)),
-            },
+            Some(val) => val,
+            //     TokenTree::Literal(literal) => (literal.to_string(), literal.span()),
+            //     TokenTree::Ident(ident) => (ident.to_string(), ident.span()),
+            //     val => return Err(KVParseError::UnexpectedTokenTree(val)),
+            // },
             None => return Err(KVParseError::ExpectedLiteral(punct.1)),
         };
 
@@ -46,8 +46,7 @@ pub fn get_kv(input: TokenStream) -> Result<HashMap<String, Value>, KVParseError
             key.0,
             Value {
                 key_span: key.1,
-                value: value.0,
-                value_span: value.1,
+                value,
             },
         );
 
@@ -72,5 +71,24 @@ pub fn is_option(ty: &Type) -> bool {
     match ty {
         Type::Path(TypePath { path, .. }) => path.segments.first().unwrap().ident == "Option",
         _ => false,
+    }
+}
+
+pub fn inner_option(ty: &Type) -> Option<&Type> {
+    if inner_ident(ty).unwrap().to_string() != "Option" {
+        return None;
+    }
+
+    match ty {
+        Type::Path(TypePath { path, .. }) => match &path.segments.first().unwrap().arguments {
+            AngleBracketed(AngleBracketedGenericArguments { args, .. }) => {
+                match args.first()? {
+                    syn::GenericArgument::Type(ty) => Some(ty),
+                    _ => None,
+                }
+            },
+            _ => None,
+        },
+        _ => None,
     }
 }

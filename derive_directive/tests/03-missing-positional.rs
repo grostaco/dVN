@@ -1,4 +1,5 @@
 use derive_directive::directive;
+use directive_errors::Directive;
 
 #[derive(Debug)]
 #[directive(keyword = "jump")]

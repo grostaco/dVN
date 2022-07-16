@@ -1,7 +1,6 @@
 use std::{io, collections::HashMap};
 
-use image::{DynamicImage, ImageResult, imageops::{resize, FilterType::Gaussian}};
-use imageproc::utils::load_image_or_panic;
+use image::{DynamicImage, imageops::{resize, FilterType::Gaussian}};
 use log::{debug, error, info, warn};
 
 use crate::parser::{script::{Script, ScriptContext}, self, directives::Directive};

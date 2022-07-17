@@ -28,9 +28,13 @@ impl Script {
         Ok(Self { buf: BufReader::new(file), file: path.to_owned(), line: 0, last_line: None })
     }    
 
-    // pub fn line(&self) -> u64 {
-    //     self.line
-    // }
+    pub fn file(&self) -> &str {
+        self.file.as_str()
+    }
+
+    pub fn line(&self) -> u64 {
+        self.line
+    }
 }
 
 impl Iterator for Script {

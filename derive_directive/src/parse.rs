@@ -75,7 +75,7 @@ pub fn is_option(ty: &Type) -> bool {
 }
 
 pub fn inner_option(ty: &Type) -> Option<&Type> {
-    if inner_ident(ty).unwrap().to_string() != "Option" {
+    if *inner_ident(ty).unwrap() != "Option" {
         return None;
     }
 

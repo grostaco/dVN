@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use directive_errors::{ParseError, VerifyError};
+use image::ImageError;
 use thiserror::Error;
 
 pub struct Span {
@@ -26,6 +27,9 @@ pub enum ErrorCause {
 
     #[error("{0}")]
     IoError(#[from] std::io::Error),
+
+    #[error("{0}")]
+    ImageError(#[from] ImageError)
 }
 
 impl Error {

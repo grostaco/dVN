@@ -10,6 +10,7 @@ pub enum Directive {
     SpriteShow(SpriteShow),
     BgLoad(BgLoad),
     BgShow(BgShow),
+    DialogueColor(DialogueColor),
 }
 
 #[derive(Debug, Clone)]
@@ -61,6 +62,16 @@ pub struct BgLoad {
 #[directive(keyword = "bg_show")]
 pub struct BgShow {
     name: String,
+}
+
+#[derive(Debug, Clone)]
+#[directive(keyword = "dialogue_color")]
+pub struct DialogueColor {
+    name: String,
+    red: u8,
+    green: u8,
+    blue: u8,
+    alpha: f64,
 }
 
 // #[derive(Debug, Clone)]

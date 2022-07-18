@@ -16,6 +16,7 @@ pub struct Engine {
     active_bg: Option<String>,
     bgs: HashMap<String, DynamicImage>, 
     renderer: Renderer,
+    // [r, g, b, a]
     dialogue_colors: HashMap<String, [u8; 4]>,
     renderable: Option<Renderable>,
 }
@@ -44,9 +45,8 @@ impl Engine {
 
     pub fn render<P: AsRef<Path>>(&self, folder_path: P) -> Option<u64> {
         let renderable = self.renderable.as_ref()?;
-        let mut hasher = DefaultHasher::new();
-        self.renderable.hash(&mut hasher);
-        let hash = hasher.finish();
+        let hash = self.render_hash();
+        
         let path = folder_path.as_ref().join(hash.to_string()).with_extension("png");
 
         if path.exists() {
@@ -64,7 +64,7 @@ impl Engine {
 
         let image = match renderable {
             Renderable::Dialogue(dialogue) => {
-                let dialogue_color = self.dialogue_colors.get(&dialogue.name).unwrap_or(&[0, 0, 0, 0]);
+                let dialogue_color = self.dialogue_colors.get(&dialogue.name).unwrap_or(&[0, 0, 0, 255/2]);
                 self.renderer.render_dialogue(bg, &sprites, &dialogue.name, &dialogue.content, *dialogue_color)
             }
         };
@@ -72,6 +72,12 @@ impl Engine {
         image.save(path).unwrap();
         
         Some(hash)
+    }
+
+    pub fn render_hash(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.renderable.hash(&mut hasher);
+        hasher.finish()
     }
 }
 
@@ -114,20 +120,6 @@ impl Iterator for Engine {
                     dialogue_color: *self.dialogue_colors.get(&dialogue.name).unwrap_or(&[0, 0, 0, 0]),
                     sprites: self.active_sprites.clone(),
                 }));
-
-                // let bg = self.active_bg.clone().map(|bg| self.bgs.get(&bg).unwrap());
-
-                // let mut sprites = self.active_sprites.iter().map(|(name, x, y)| {
-                //     let (sprite_img, _, priority) = self.sprites.get(name).unwrap();
-                //     (sprite_img, *x as i64, *y as i64, *priority)
-                // }).collect::<Vec<_>>();
-                // sprites.sort_by(|a, b| a.2.cmp(&b.2));
-                // let dialogue_color = self.dialogue_colors.get(&dialogue.name).unwrap_or(&[0, 0, 0, 0]);
-
-                // let sprites = sprites.into_iter().map(|(sprite_img, x, y, ..)| (sprite_img, *x as i64, *y as i64)).collect::<Vec<_>>();
-
-                // let image = self.renderer.render_dialogue(bg, &sprites, &dialogue.name, &dialogue.content, *dialogue_color);
-                // image.save("out.png").unwrap();
             },
             // Maybe think of a more modular approach?
             ScriptContext::Directive(ref directive) =>  match directive  {

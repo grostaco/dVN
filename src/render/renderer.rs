@@ -1,14 +1,9 @@
-use std::{
-    collections::hash_map::DefaultHasher,
-    hash::{Hash, Hasher},
-};
-
 use image::{
     imageops::{blur, overlay},
     DynamicImage, GenericImageView, ImageBuffer, Pixel, Rgba,
 };
 use imageproc::drawing::draw_filled_circle_mut;
-use log::{trace, debug};
+use log::debug;
 use rusttype::{point, Font, Scale};
 
 use super::draw::{draw_rounded_rect, glyphs_width, as_glyphs, draw_text, draw_words};
@@ -65,6 +60,15 @@ impl Renderer {
             self.text.ymax - self.text.ymin + height as u32 + 20,
         );
     
+        if let Some(bg) = bg {
+            let resized_bg = bg.resize_exact(
+                self.screen.xmax - self.screen.xmin,
+                self.screen.ymax - self.screen.ymin,
+                image::imageops::FilterType::Nearest,
+            );
+            overlay(&mut image, &resized_bg, 0, 0);
+        }
+
         for (sprite, x, y, _) in sprites {
             let (width, height) = sprite.dimensions();
             let (width, height) = (width as i64, height as i64);
@@ -114,10 +118,11 @@ impl Renderer {
 
             let height = v_metrics.ascent - v_metrics.descent;
 
+            debug!("name_width: {}", name_width);
             draw_rounded_rect(
                 &mut text_box,
                 (0, 0),
-                (name_width, height as u32 + 30),
+                (name_width.max(8 * 2), height as u32 + 30),
                 dialogue_color.into(),
                 8,
             );

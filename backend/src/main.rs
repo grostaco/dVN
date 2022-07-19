@@ -1,6 +1,6 @@
 use std::{path::Path, fs::{self, OpenOptions}, io::{Write, self}, sync::Mutex};
 use image_rpg::core::engine::Engine;
-use rocket::tokio::fs::{remove_dir, create_dir};
+use rocket::{tokio::fs::{remove_dir, create_dir}, fairing::{Fairing, Kind, Info}, Request, Response, http::{Header, Status}, response::{status, self}};
 use serde::Serialize;
 use serde_json::json;
 
@@ -16,21 +16,27 @@ struct RenderResult {
     hashed_ids: Vec<u64>,
 }
 
+#[derive(Responder)]
+#[response(status = 200)]
+struct RenderResponder {
+    data: String,
+}
+
 #[get("/api/rendered/<id>/preview.png")]
 fn image_preview(id: u64) -> std::io::Result<Vec<u8>> {
-    let p = Path::new("../assets/rendered/").join(id.to_string()).with_extension("png");
+    let p = Path::new("../assets/rendered/.cache").join(id.to_string()).with_extension("png");
     fs::read(p)
 }
 
 #[post("/api/render", data = "<content>")]
-fn render(content: &str) -> String {
+fn render(content: &str) -> RenderResponder  {
     let p = Path::new("../assets/autogen_script.script");
     println!("Content:\n{}", content);
 
     OpenOptions::new().create(true).write(true).truncate(true).open(p).unwrap().write_all(content.as_bytes()).unwrap();
     let mut engine = match Engine::new(p.to_str().unwrap()) {
         Ok(engine) => engine,
-        Err(e) => return json!({"code": 400, "reason": e.to_string()}).to_string(), 
+        Err(e) => return RenderResponder { data: json!({"code": 300, "reason": e.to_string()}).to_string() }, 
     };
     let mut ids = Vec::new();
 
@@ -39,11 +45,11 @@ fn render(content: &str) -> String {
             Ok(_) => {
                 if let Some(hsh) = engine.render("../assets/rendered/.cache") { ids.push(hsh) }
             }
-            Err(e) => return json!({"code": 400, "reason": e.to_string()}).to_string(),
+            Err(e) => return RenderResponder { data: json!({"code": 300, "reason": e.to_string()}).to_string() },
         }
     }
 
-    json!({"code": 200, "identifiers": ids}).to_string()
+    RenderResponder { data: json!({"code": 200, "data": ids}).to_string() }
 }
 
 #[delete("/api/render")]
@@ -54,9 +60,29 @@ async fn clear_rendered() -> io::Result<()> {
     Ok(())
 }
 
+pub struct CORS;
+
+#[rocket::async_trait]
+impl Fairing for CORS {
+    fn info(&self) -> Info {
+        Info {
+            name: "Add CORS headers to responses",
+            kind: Kind::Response,
+        }
+    }
+
+    async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
+        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        response.set_header(Header::new("Access-Control-Allow-Methods", "POST, GET, PATCH, OPTIONS"));
+        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
+        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+    }
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
+    .attach(CORS)
     //.manage(EngineWrapper { engine: Mutex::new(None) })
     .mount("/", routes![image_preview, render, clear_rendered])
 }

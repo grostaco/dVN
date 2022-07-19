@@ -1,12 +1,40 @@
+body {
+    font-weight: 300;
+    font-family: 'Corier New', monospace;
+    color: white;
+    background-color: #242424;
+}
+
 .text_input {
     float: right;
+    font-weight: 300;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
     width: 50%;
+    font-size: 15px;
+    margin: 0;
     overflow: auto;
 }
 
-.submit {
+.button {
+    border-radius: 12px;
+    padding: 8px 8px 8px 8px;
     float: right;
-    margin: 0;
-    padding: 0;
+    margin: 4px;
     clear: both;
+    color: white;
+    background-color: transparent;
+    border-color: white;
+    border-width: 2px;
+}
+
+.nextprev {
+    border-radius: 12px;
+    padding: 8px 8px 8px 8px;
+    float: inline-start;
+    margin: 4px;
+    clear: left;
+    color: white;
+    background-color: transparent;
+    border-color: white;
+    border-width: 2px;
 }

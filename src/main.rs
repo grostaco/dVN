@@ -5,10 +5,10 @@ mod render;
 use std::sync::{Arc, Mutex};
 
 use log::{info, warn};
-use reqwest::{Client, header::ACCESS_CONTROL_ALLOW_ORIGIN};
+use reqwest::Client;
 use serde_json::Value;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
-use wasm_bindgen_futures::{spawn_local, future_to_promise, JsFuture};
+use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
 
@@ -106,11 +106,14 @@ impl Component for Model {
                 false
             },
             Msg::Update => true,
+            Msg::Next => { self.index = (self.index + 1).min(self.rendered.lock().unwrap().len() - 1); true },
+            Msg::Prev => { self.index = self.index.max(1) - 1; true  }
             _ => panic!()
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        info!("Current index: {}", self.index);
         let rendered = self.rendered.lock().unwrap();
         let index = self.index;
 
@@ -125,12 +128,14 @@ impl Component for Model {
         html!(
             <div>
             if rendered.is_empty()  {
-                <p>{"Nothing rendered yet!"}</p>
+                <p style="padding: 10; margin: 0; width: 50%">{"Nothing rendered yet!"}</p>
             } else {
                 <img src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", content.unwrap())}/>
+                <button class="nextprev" onclick={link.callback(|_| Msg::Prev)}>{"Prev"}</button>
+                <button class="nextprev" onclick={link.callback(|_| Msg::Next)}>{"Next"}</button>
             }
             <TextInput {on_change} value={self.script_text.clone()}/>
-            <button class="submit" {onclick}>{"Compile!"}</button>
+            <button class="button" {onclick}>{"Compile!"}</button>
             </div>
         )
     }

@@ -2,23 +2,30 @@ mod core;
 mod parser;
 mod render;
 
-use crate::core::engine::Engine;
-use std::{path::Path, fs::{self, OpenOptions}, io::Write};
+use std::sync::{Arc, Mutex};
 
 use log::{info, warn};
-use wasm_bindgen::{JsCast, UnwrapThrowExt, JsValue};
-use web_sys::{HtmlInputElement, HtmlTextAreaElement};
+use reqwest::{Client, header::ACCESS_CONTROL_ALLOW_ORIGIN};
+use serde_json::Value;
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
+use wasm_bindgen_futures::{spawn_local, future_to_promise, JsFuture};
+use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
 
 
 enum Msg {
+    Prev,
+    Next,
     Submit,
     SetScript(String),
+    Update,
 }
 
 struct Model {
-    engine: Option<Engine>,
+    client: Client,
     script_text: String,
+    index: usize,
+    rendered: Arc<Mutex<Vec<u64>>>,
 }
 
 #[derive(Clone, PartialEq, Properties)]
@@ -28,6 +35,7 @@ pub struct Props {
 }
 
 fn get_value_from_input_event(e: InputEvent) -> String {
+    e.prevent_default();
     let event: Event = e.dyn_into().unwrap_throw();
     let event_target = event.target().unwrap_throw();
 
@@ -54,34 +62,73 @@ impl Component for Model {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self { engine: None, script_text: String::new() }
+        Self { script_text: String::new(), client: Client::new(), rendered: Arc::new(Mutex::new(Vec::new())), index: 0 }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::SetScript(s) => {
                 self.script_text = s;
-                true
+                false
             },
             Msg::Submit => {
-                let p = Path::new("autogen_script.script");
-                web_sys::console::log_1(&("Doing a thing!".to_string()).into());
-                OpenOptions::new().write(true).read(true).create(true).truncate(true).open("autogen_script.script").unwrap();
-                //self.engine.replace(Engine::new(p.to_str().unwrap()).unwrap());
-                true
-            }
+                info!("Sent a request");
+                let client = self.client.clone();
+                let script_text = self.script_text.clone();
+
+                let rendered = self.rendered.clone();
+                let link = ctx.link().clone();
+                spawn_local(async move  { 
+                    let mut rendered = rendered.lock().unwrap();
+                    let content = client.post("http://127.0.0.1:8000/api/render")
+                        .body(script_text)
+                        .send()
+                        .await
+                        .unwrap()
+                        .text()
+                        .await
+                        .unwrap();
+                    
+                    let content: Value = serde_json::from_str(&content).unwrap();
+                    info!("Received code {} from render endpoint", content["code"]);
+                    if content["code"].as_u64().unwrap() == 200 {
+                        *rendered = content["data"]
+                                                    .as_array()
+                                                    .unwrap()
+                                                    .iter()
+                                                    .map(|x| x.as_u64().unwrap())
+                                                    .collect::<Vec<_>>();
+                    }
+                    drop(rendered);
+                    link.send_message(Msg::Update)
+                });
+                
+                false
+            },
+            Msg::Update => true,
+            _ => panic!()
         }
     }
 
-    
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let rendered = self.rendered.lock().unwrap();
+        let index = self.index;
+
         let link = ctx.link();
         let on_change = link.callback(Msg::SetScript);
         let onclick = link.callback(|_| Msg::Submit);
+        // let onclick_prev = link.callback(|_| Msg::Prev);
+        // let onclick_next = link.callback(|_| Msg::Next);
 
+        info!("rendered len: {}", rendered.len());
+        let content = rendered.get(index).map(ToString::to_string);
         html!(
             <div>
-            <img src="http://127.0.0.1:8000/rendered/1/preview.jpg"/>
+            if rendered.is_empty()  {
+                <p>{"Nothing rendered yet!"}</p>
+            } else {
+                <img src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", content.unwrap())}/>
+            }
             <TextInput {on_change} value={self.script_text.clone()}/>
             <button class="submit" {onclick}>{"Compile!"}</button>
             </div>
@@ -90,7 +137,7 @@ impl Component for Model {
 }
 
 fn main () {
-    //wasm_logger::init(wasm_logger::Config::new(log::Level::Info));
-    env_logger::init();
+    wasm_logger::init(wasm_logger::Config::new(log::Level::Info));
+    //env_logger::init();
     yew::start_app::<Model>();
 }

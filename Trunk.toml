@@ -1,2 +1,5 @@
 [watch]
 ignore = ["assets"]
+
+[serve]
+port = 8080

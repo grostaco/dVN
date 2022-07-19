@@ -1,6 +1,6 @@
-use std::{path::Path, fs::{self, OpenOptions}, io::{Write, self}, sync::Mutex};
+use std::{path::Path, fs::{self, OpenOptions}, io::{Write, self}};
 use image_rpg::core::engine::Engine;
-use rocket::{tokio::fs::{remove_dir, create_dir}, fairing::{Fairing, Kind, Info}, Request, Response, http::{Header, Status}, response::{status, self}};
+use rocket::{tokio::fs::{remove_dir, create_dir}, fairing::{Fairing, Kind, Info}, Request, Response, http::Header};
 use serde::Serialize;
 use serde_json::json;
 

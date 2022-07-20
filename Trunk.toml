@@ -2,4 +2,4 @@
 ignore = ["assets"]
 
 [serve]
-port = 8080
+port = 5500

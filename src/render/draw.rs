@@ -1,11 +1,9 @@
-use image::{io::Reader, DynamicImage, ImageBuffer, Pixel, Rgba};
+use image::{ImageBuffer, Pixel, Rgba};
 use imageproc::{
     drawing::{draw_filled_rect_mut, draw_line_segment_mut, Canvas},
     rect::Rect,
 };
 use rusttype::{Font, Point, PositionedGlyph, Scale};
-
-use super::error::LoadImageError;
 
 pub fn draw_words<'a, 'i>(
     text: &str,
@@ -129,12 +127,12 @@ pub fn as_glyphs<'a>(
     font.layout(text, scale, point).collect::<Vec<_>>()
 }
 
-pub fn load_image(path: &str) -> Result<DynamicImage, LoadImageError> {
-    Reader::open(path)
-        .map_err(LoadImageError::IoError)?
-        .decode()
-        .map_err(LoadImageError::ImageError)
-}
+// pub fn load_image(path: &str) -> Result<DynamicImage, LoadImageError> {
+//     Reader::open(path)
+//         .map_err(LoadImageError::IoError)?
+//         .decode()
+//         .map_err(LoadImageError::ImageError)
+// }
 
 pub fn draw_rounded_rect<C>(
     canvas: &mut C,

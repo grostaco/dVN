@@ -211,6 +211,90 @@ impl Renderer {
 
         image
     }
+
+    pub fn render_choice(
+        &self,
+        bg: Option<&DynamicImage>,
+        choices: &(&str, &str),
+    ) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+        let v_metrics = self.font.v_metrics(self.scale);
+        let glyph_height = v_metrics.ascent - v_metrics.descent;
+        let mut image = DynamicImage::new_rgba8(self.screen.xmax, self.screen.ymax).to_rgba8();
+        let white = Rgba::from_slice(&[255, 255, 255, 255]);
+
+        let mut opacity_box: ImageBuffer<Rgba<u8>, Vec<u8>> =
+            ImageBuffer::new(self.screen.xmax, (glyph_height * 1.5) as u32);
+
+        for pixel in opacity_box.pixels_mut() {
+            pixel.0 = [0, 0, 0, 255 / 2];
+        }
+
+        if let Some(bg) = bg {
+            let resized_bg = bg.resize_exact(
+                self.screen.xmax - self.screen.xmin,
+                self.screen.ymax - self.screen.ymin,
+                image::imageops::FilterType::Gaussian,
+            );
+            overlay(&mut image, &resized_bg, 0, 0);
+        }
+
+        let a_glyphs = &as_glyphs(
+            choices.0,
+            &self.font,
+            self.scale,
+            point(self.screen.xmax as f32 / 2.0, self.screen.ymax as f32 / 4.0),
+        );
+        let a_width = glyphs_width(a_glyphs);
+        let b_glyphs = &as_glyphs(
+            choices.1,
+            &self.font,
+            self.scale,
+            point(
+                self.screen.xmax as f32 / 2.0,
+                self.screen.ymax as f32 / 4.0 + v_metrics.ascent * 5.0,
+            ),
+        );
+        let b_width = glyphs_width(b_glyphs);
+
+        overlay(
+            &mut image,
+            &opacity_box,
+            0,
+            (self.screen.ymax as f32 / 4.0 - glyph_height) as i64,
+        );
+
+        draw_text(
+            choices.0,
+            white,
+            &mut image,
+            &self.font,
+            self.scale,
+            point(
+                self.screen.xmax as f32 / 2.0 - a_width as f32 / 2.0,
+                self.screen.ymax as f32 / 4.0,
+            ),
+        );
+        overlay(
+            &mut image,
+            &opacity_box,
+            0,
+            (self.screen.ymax as f32 / 4.0 + v_metrics.ascent * 5.0 - glyph_height) as i64,
+        );
+
+        draw_text(
+            choices.1,
+            white,
+            &mut image,
+            &self.font,
+            self.scale,
+            point(
+                self.screen.xmax as f32 / 2.0 - b_width as f32 / 2.0,
+                self.screen.ymax as f32 / 4.0 + v_metrics.ascent * 5.0,
+            ),
+        );
+
+        image
+    }
 }
 
 // impl Scene {

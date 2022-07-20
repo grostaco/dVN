@@ -43,7 +43,7 @@ impl Engine {
         self.choice = choice;
     }
 
-    pub fn render<P: AsRef<Path>>(&self, folder_path: P) -> Option<u64> {
+    pub fn render<P: AsRef<Path>>(&mut self, folder_path: P) -> Option<u64> {
         let renderable = self.renderable.as_ref()?;
         let hash = self.render_hash();
         
@@ -66,6 +66,9 @@ impl Engine {
             Renderable::Dialogue(dialogue) => {
                 let dialogue_color = self.dialogue_colors.get(&dialogue.name).unwrap_or(&[0, 0, 0, 255/2]);
                 self.renderer.render_dialogue(bg, &sprites, &dialogue.name, &dialogue.content, *dialogue_color)
+            },
+            Renderable::Choice(choice) => {
+                self.renderer.render_choice(bg, &(&choice.choices.0, &choice.choices.1))
             }
         };
 
@@ -77,17 +80,24 @@ impl Engine {
     pub fn render_hash(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.renderable.hash(&mut hasher);
+        
+        if let Some(Renderable::Dialogue(_)) = &self.renderable {
+            self.active_sprites.iter().for_each(|(name, ..)| {
+                    let (_, scale, _) = self.sprites.get(name).unwrap();
+                    ((scale * 1000.) as u64).hash(&mut hasher)
+            });
+        }
         hasher.finish()
     }
 }
 
-#[derive(Hash)]
+#[derive(Hash, Debug)]
 enum Renderable {
     Dialogue(Dialogue),
-    // Choice(Choice),
+    Choice(Choice),
 }
 
-#[derive(Hash)]
+#[derive(Hash, Debug)]
 struct Dialogue {
     bg: Option<String>,
     name: String,
@@ -96,10 +106,12 @@ struct Dialogue {
     dialogue_color: [u8; 4],
 }
 
-
-// struct Choice {
-
-// }
+#[derive(Hash, Debug)]
+struct Choice {
+    bg: Option<String>,
+    choices: (String, String),
+    sprites: Vec<(String, u64, u64)>,
+}
 
 impl Iterator for Engine {
     type Item = Result<ScriptContext, parser::Error>; 
@@ -108,12 +120,12 @@ impl Iterator for Engine {
             Err(e) => return Some(Err(e)),
             Ok(o) => o,
         };
-
+        self.renderable = None;
         match script {
             ScriptContext::Dialogue(ref dialogue) => {
                 debug!("Parsed dialogue \"{}: {}\"", dialogue.name, dialogue.content);
 
-                self.renderable.replace(Renderable::Dialogue(Dialogue {
+                self.renderable = Some(Renderable::Dialogue(Dialogue {
                     bg: self.active_bg.clone(),
                     name: dialogue.name.clone(),
                     content: dialogue.content.clone(),
@@ -124,6 +136,13 @@ impl Iterator for Engine {
             // Maybe think of a more modular approach?
             ScriptContext::Directive(ref directive) =>  match directive  {
                 Directive::Jump(j) => {
+                    if j.choice_a.is_some() {
+                        self.renderable = Some(Renderable::Choice(Choice { 
+                            bg: self.active_bg.clone(),
+                            choices: (j.choice_a.clone().unwrap(), j.choice_b.clone().unwrap()),
+                            sprites: self.active_sprites.clone(),
+                        }));
+                    }
                     if (j.choice_a.is_some() && self.choice) || j.choice_a.is_none(){ // Either conditional jump with choice_a or it's an unconditional jump
                         info!("Jumping to \"{}\"", &j.endpoint);
                         self.script = match Script::new(&j.endpoint) {
@@ -159,6 +178,7 @@ impl Iterator for Engine {
                     if let Some(idx) = self.active_sprites.iter().position(|(s, ..)| &sh.name == s) {
                         self.active_sprites.remove(idx);
                         debug!("Removed sprite \"{}\" from active sprites list", sh.name);
+                        //info!("current renderable is_some: {}", self.renderable.is_some());
                     } else if  self.sprites.iter().any(|(n, ..)| sh.name == **n) {
                         warn!("Sprite \"{}\" exists but cannot be hidden as it already is, consider using `@sprite_show`", sh.name)
                     } else {
@@ -166,8 +186,9 @@ impl Iterator for Engine {
                     }
                 },
                 Directive::SpriteShow(ss) => {
-                    if  self.active_sprites.iter().any(|(s, ..)| &ss.name == s) {
-                        warn!("Sprite \"{}\" is already active", ss.name)
+                    if let Some(sprite) = self.active_sprites.iter_mut().find(|(s, ..)| &ss.name == s) {
+                        sprite.1 = ss.x;
+                        sprite.2 = ss.y;
                     }  else {
                         debug!("Sprite \"{}\" is now active at ({}, {})", ss.name, ss.x, ss.y);
                         self.active_sprites.push((ss.name.clone(), ss.x, ss.y));

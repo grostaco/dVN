@@ -575,6 +575,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "frontend"
+version = "0.1.0"
+dependencies = [
+ "js-sys",
+ "log",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-logger",
+ "web-sys",
+ "yew",
+]
+
+[[package]]
 name = "futures"
 version = "0.3.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -993,18 +1009,9 @@ dependencies = [
  "env_logger",
  "image",
  "imageproc",
- "js-sys",
  "log",
- "reqwest",
  "rusttype",
- "serde",
- "serde_json",
  "thiserror",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "wasm-logger",
- "web-sys",
- "yew",
 ]
 
 [[package]]

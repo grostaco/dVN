@@ -1,5 +1,3 @@
-[watch]
-ignore = ["assets"]
-
 [serve]
+# For VSC live server
 port = 5500

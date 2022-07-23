@@ -80,15 +80,22 @@ impl Component for App {
         info!("rendered len: {}", self.rendered.len());
         let content = self.rendered.get(index).map(ToString::to_string);
         html! {
-            <div>
-            if self.rendered.is_empty()  {
-                <p style="padding: 10; margin: 0; width: 50%">{"Nothing rendered yet!"}</p>
-            } else {
-                <img src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", content.unwrap())}/>
-                <ButtonInput maxlen={self.rendered.len()} onclick={link.callback(Msg::NewIndex)}/>
-            }
-            <TextInput {on_change} value={self.script_text.clone()}/>
-            <button class="button-60" {onclick}>{"Compile!"}</button>
+            <div class="main">
+                <div class="container">
+                    if self.rendered.is_empty()  {
+                        <p style="padding: 10; margin: 0; width: 50%">{"Nothing rendered yet!"}</p>
+                    } else {
+                        
+                        <img src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", content.unwrap())}/>
+                        <ButtonInput maxlen={self.rendered.len()} onclick={link.callback(Msg::NewIndex)}/>
+                        
+                    }
+                    <div class="submission">
+                        <TextInput {on_change} value={self.script_text.clone()}/>
+                        <button class="button" {onclick}>{"Compile"}</button>
+                    </div>
+                </div>
+                <textarea class="log" readonly=true></textarea>
             </div>
         }
     }

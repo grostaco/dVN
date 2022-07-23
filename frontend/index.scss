@@ -1,46 +1,132 @@
+html,
 body {
     font-weight: 300;
-    font-family: 'Corier New', monospace;
+    height: 100%;
+    width: 100%;
     color: white;
     background-color: #242424;
+    margin: 0;
+    padding: 0;
 }
 
-.text_input {
-    float: right;
+.logarea {
+    height: 100%;
+    width: 100%;
+}
+
+.log {
+    resize: none;
+    display: block;
     font-weight: 300;
     font-family: Verdana, Arial, Helvetica, sans-serif;
-    width: 50%;
-    font-size: 15px;
-    margin: 0;
+    height: calc(90% - 480px);
+    width: calc(100% - 20px);
+    margin: auto;
+    font-size: 12px;
     overflow: auto;
 }
 
-.button {
-    border-radius: 12px;
+.container {
+    min-height: 520px;
+    padding: 10px;
+    margin: 0;
+    width: inherit;
+    height: auto;
+    position: relative;
+}
+
+.container .btn {
+    position: relative;
+    bottom: 10px;
+    border-radius: 8px;
+    margin-right: 4px;
     padding: 8px 8px 8px 8px;
-    float: right;
-    margin: 4px;
-    border-style: solid;
     clear: both;
-    color: white;
-    background-color: transparent;
+    color: black;
     border-color: white;
-    border-width: 2px;
-}
-
-.nextprev {
-    border-radius: 12px;
-    padding: 8px 8px 8px 8px;
-    float: inline-start;
     border-style: solid;
-    margin: 4px;
-    clear: left;
-    color: white;
-    background-color: transparent;
-    border-color: white;
-    border-width: 2px;
+    background-color: white;
 }
 
+// .container .text_input {
+//     resize: none;
+//     float: right;
+//     overflow: auto;
+//     font-family: Verdana, Arial, Helvetica, sans-serif;
+//     width: 320px;
+//     height: 480px;
+// }
+.submission .text_input {
+    resize: none;
+    float: right;
+    overflow: auto;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    width: 320px;
+    height: 480px;
+}
+
+.container .submission {
+    position: relative;
+    float: right;
+}
+
+.container .submission .button {
+    position: absolute;
+    bottom: 0;
+    left: -75px;
+    border-radius: 8px;
+    border-radius: 8px;
+    padding: 8px 8px 8px 8px;
+    clear: both;
+    color: black;
+    border-color: white;
+    border-style: solid;
+    background-color: white;
+}
+
+.main {
+    height: 100%;
+}
+
+// body {
+//     font-weight: 300;
+//     font-family: 'Corier New', monospace;
+//     color: white;
+//     background-color: #242424;
+// }
+// .text_input {
+//     float: right;
+//     font-weight: 300;
+//     font-family: Verdana, Arial, Helvetica, sans-serif;
+//     width: 50%;
+//     font-size: 15px;
+//     margin: 0;
+//     overflow: auto;
+// }
+// .button {
+//     border-radius: 12px;
+//     padding: 8px 8px 8px 8px;
+//     float: right;
+//     margin: 4px;
+//     border-style: solid;
+//     clear: both;
+//     color: white;
+//     background-color: transparent;
+//     border-color: white;
+//     border-width: 2px;
+// }
+// .nextprev {
+//     border-radius: 12px;
+//     padding: 8px 8px 8px 8px;
+//     float: inline-start;
+//     border-style: solid;
+//     margin: 4px;
+//     clear: left;
+//     color: white;
+//     background-color: transparent;
+//     border-color: white;
+//     border-width: 2px;
+// }
 
 /* CSS */
 

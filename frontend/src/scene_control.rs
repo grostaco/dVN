@@ -1,3 +1,4 @@
+//use log::info;
 use yew::{Callback, Properties, Component, Context, html, Html};
 
 #[derive(Clone, PartialEq, Properties)]
@@ -27,8 +28,8 @@ impl Component for ButtonInput {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::Prev => self.index = self.index.saturating_sub(1),
-            Msg::Next => self.index = (self.index + 1).max(ctx.props().maxlen - 1)
+            Msg::Prev => { self.index = self.index.saturating_sub(1) },
+            Msg::Next => { self.index = (self.index + 1).min(ctx.props().maxlen - 1) }
         }
 
         ctx.props().onclick.emit(self.index);
@@ -41,8 +42,8 @@ impl Component for ButtonInput {
         
         html! {
             <>
-            <button class="nextprev" onclick={link.callback(|_| Msg::Prev)}>{"Prev"}</button>
-            <button class="nextprev" onclick={link.callback(|_| Msg::Next)}>{"Next"}</button>
+            <button class="btn" onclick={link.callback(|_| Msg::Prev)}>{"Prev"}</button>
+            <button class="btn" onclick={link.callback(|_| Msg::Next)}>{"Next"}</button>
             </>
         }
     }

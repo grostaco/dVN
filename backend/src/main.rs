@@ -1,14 +1,8 @@
 use std::{path::Path, fs::{self, OpenOptions}, io::{Write, self}};
 use image_rpg::core::engine::Engine;
-use rocket::{tokio::fs::{remove_dir, create_dir}, fairing::{Fairing, Kind, Info}, Request, Response, http::Header};
-use serde::Serialize;
-use serde_json::json;
+use rocket::{tokio::fs::{remove_dir, create_dir}, fairing::{Fairing, Kind, Info}, Request, Response, http::Header, serde::{Serialize, json::serde_json::json}};
 
 #[macro_use] extern crate rocket;
-
-// struct EngineWrapper {
-//     engine: Mutex<Option<Engine>>,
-// }
 
 #[derive(Serialize)]
 #[serde(crate = "rocket::serde")]
@@ -24,18 +18,19 @@ struct RenderResponder {
 
 #[get("/api/rendered/<id>/preview.png")]
 fn image_preview(id: u64) -> std::io::Result<Vec<u8>> {
-    let p = Path::new("../assets/rendered/.cache").join(id.to_string()).with_extension("png");
+    let p = Path::new("assets/rendered/.cache").join(id.to_string()).with_extension("png");
     fs::read(p)
 }
 
 #[post("/api/render", data = "<content>")]
-fn render(content: &str) -> RenderResponder  {
-    let p = Path::new("../assets/autogen_script.script");
+fn render(content: &str) -> RenderResponder {
+    let p = Path::new("assets/autogen_script.script");
     println!("Content:\n{}", content);
 
     OpenOptions::new().create(true).write(true).truncate(true).open(p).unwrap().write_all(content.as_bytes()).unwrap();
     let mut engine = match Engine::new(p.to_str().unwrap()) {
         Ok(engine) => engine,
+        // 300 is most definitely NOT the right code
         Err(e) => return RenderResponder { data: json!({"code": 300, "reason": e.to_string()}).to_string() }, 
     };
     let mut ids = Vec::new();
@@ -43,7 +38,7 @@ fn render(content: &str) -> RenderResponder  {
     while let Some(result) = engine.next() {
         match result {
             Ok(_) => {
-                if let Some(hsh) = engine.render("../assets/rendered/.cache") { ids.push(hsh) }
+                if let Some(hsh) = engine.render("assets/rendered/.cache") { ids.push(hsh) }
             }
             Err(e) => return RenderResponder { data: json!({"code": 300, "reason": e.to_string()}).to_string() },
         }
@@ -54,8 +49,8 @@ fn render(content: &str) -> RenderResponder  {
 
 #[delete("/api/render")]
 async fn clear_rendered() -> io::Result<()> {
-    remove_dir("../assets/rendered/.cache").await?;
-    create_dir("../assets/rendered/.cache").await?;
+    remove_dir("assets/rendered/.cache").await?;
+    create_dir("assets/rendered/.cache").await?;
 
     Ok(())
 }
@@ -79,6 +74,7 @@ impl Fairing for CORS {
     }
 }
 
+// This program should be run with cargo -p
 #[launch]
 fn rocket() -> _ {
     rocket::build()

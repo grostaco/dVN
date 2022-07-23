@@ -146,8 +146,6 @@ version = "0.1.0"
 dependencies = [
  "image_rpg",
  "rocket",
- "serde",
- "serde_json",
 ]
 
 [[package]]

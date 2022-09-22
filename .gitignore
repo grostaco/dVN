@@ -3,5 +3,6 @@
 /assets
 /log
 /backend/static/
+log/
 *.png
 *.script

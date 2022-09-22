@@ -5,93 +5,87 @@ use yew::{
 };
 use yew_hooks::use_async;
 
-use crate::services::render::post_render;
+use crate::services::render::{post_render, RenderResult};
 
 use super::components::*;
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let client = use_ref(Client::new);
-    let script = use_mut_ref(String::new);
-    let log = use_state(String::new);
-    let index = use_state(|| 0);
-    let ids = use_mut_ref(Vec::new);
-
-    let to_compile = use_state(String::new);
-
-    let render = {
-        let to_compile = to_compile.clone();
-        let log = log.clone();
-        let ids = ids.clone();
-        use_async(async move {
-            let content = post_render(client, (*to_compile).to_string()).await;
-            *ids.borrow_mut() = content.data;
-            log.set(String::from_utf8(content.log).unwrap());
-            Ok::<_, ()>(())
-        })
+    let render_result = use_state(RenderResult::default);
+    let editor_onchange = {
+        let render_result = render_result.clone();
+        Callback::from(move |result| render_result.set(result))
     };
+    // let client = use_ref(Client::new);
+    // let script = use_mut_ref(String::new);
+    // let log = use_state(String::new);
+    // let ids = use_mut_ref(Vec::new);
 
-    let compile = {
-        let to_compile = to_compile.clone();
-        let script = script.clone();
-        Callback::from(move |_| {
-            to_compile.set(script.borrow().to_string());
-        })
-    };
+    // let to_compile = use_state(String::new);
 
-    {
-        let to_compile = to_compile.clone();
-        use_effect_with_deps(
-            move |_| {
-                render.run();
-                || ()
-            },
-            to_compile,
-        );
-    }
+    // let render = {
+    //     let to_compile = to_compile.clone();
+    //     let log = log.clone();
+    //     let ids = ids.clone();
+    //     use_async(async move {
+    //         let content = post_render(client, (*to_compile).to_string()).await;
+    //         *ids.borrow_mut() = content.data;
+    //         log.set(String::from_utf8(content.log).unwrap());
+    //         Ok::<_, ()>(())
+    //     })
+    // };
 
-    let prev = {
-        let index = index.clone();
-        Callback::from(move |_| index.set((*index as usize).saturating_sub(1)))
-    };
+    // let compile = {
+    //     let to_compile = to_compile.clone();
+    //     let script = script.clone();
+    //     Callback::from(move |_| {
+    //         to_compile.set(script.borrow().to_string());
+    //     })
+    // };
 
-    let next = {
-        let index = index.clone();
-        let ids = ids.clone();
-        Callback::from(move |_| index.set((*index + 1).min(ids.borrow().len() - 1)))
-    };
+    // {
+    //     let to_compile = to_compile;
+    //     use_effect_with_deps(
+    //         move |_| {
+    //             render.run();
+    //             || ()
+    //         },
+    //         to_compile,
+    //     );
+    // }
 
     html! {
         <>
         <Nav/>
         <div class="main dflex-gap-md">
             <div class="dflex dflex-row dflex-justify-between">
-                <div class="dflex dflex-row">
-                    if to_compile.is_empty()  {
-                        <p>{"Nothing rendered yet!"}</p>
-                    } else {
-                        <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", ids.borrow().get(*index).unwrap_or(&0))}/>
-                        <div class="dflex dflex-gap-sm" style="flex-direction: column-reverse;">
-                            <Button label="Clear Cache" onclick={compile.clone()}/>
-                            <Button label="Prev" onclick={prev}/>
-                            <Button label="Next" onclick={next}/>
-                        </div>
-                    }
-                </div>
-                <div class="text-edit dflex-gap-sm">
-                    <TextInput on_change={script}/>
-                    <div>
-                        <Button label="Compile" onclick={compile}/>
-                    </div>
-                </div>
+                <Preview data={render_result.data.clone()}/>
+                <Editor data_cb={editor_onchange}/>
             </div>
-
-            <Logs logs={log.to_string()}/>
+            <Logs logs={render_result.log.clone()}/>
         </div>
         </>
     }
 }
 
+// <div class="text-edit dflex-gap-sm">
+//     <TextInput on_change={script}/>
+//     <div>
+//         <Button label="Compile" onclick={compile}/>
+//     </div>
+// </div>
+// <div class="dflex dflex-row">
+//     if to_compile.is_empty()  {
+//         <p>{"Nothing rendered yet!"}</p>
+//     } else {
+//         <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", ids.borrow().get(*index).unwrap_or(&0))}/>
+//         <div class="dflex dflex-gap-sm" style="flex-direction: column-reverse;">
+//             <Button label="Clear Cache" onclick={compile.clone()}/>
+//             <Button label="Prev" onclick={prev}/>
+//             <Button label="Next" onclick={next}/>
+//         </div>
+//     }
+// </div>
 //         html! {
 //             <>
 //             <Nav/>

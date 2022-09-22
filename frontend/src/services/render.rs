@@ -3,7 +3,7 @@ use std::rc::Rc;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Default, Clone)]
 pub struct RenderResult {
     pub code: u64,
     pub log: Vec<u8>,
@@ -22,6 +22,14 @@ pub async fn post_render(client: Rc<Client>, script: String) -> RenderResult {
         .unwrap();
 
     serde_json::from_str(&content).unwrap()
+}
+
+pub async fn delete_cache(client: Rc<Client>) {
+    client
+        .delete("http://127.0.0.1:8000/api/render")
+        .send()
+        .await
+        .unwrap();
 }
 
 //     // let content: Value = serde_json::from_str(&content).unwrap();

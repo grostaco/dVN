@@ -1,5 +1,4 @@
 use reqwest::Client;
-use serde_json::Value;
 
 use yew::{
     function_component, html, use_effect_with_deps, use_mut_ref, use_ref, use_state, Callback,
@@ -23,27 +22,11 @@ pub fn app() -> Html {
     let render = {
         let to_compile = to_compile.clone();
         let log = log.clone();
-        let ids_store = ids.clone();
+        let ids = ids.clone();
         use_async(async move {
             let content = post_render(client, (*to_compile).to_string()).await;
-            let content: Value = serde_json::from_str(&content).unwrap();
-            let logs = String::from_utf8(
-                content["log"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .map(|v| v.as_u64().unwrap() as u8)
-                    .collect(),
-            )
-            .unwrap();
-            let ids = content["data"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .map(|x| x.as_u64().unwrap())
-                .collect::<Vec<_>>();
-            *ids_store.borrow_mut() = ids;
-            log.set(logs);
+            *ids.borrow_mut() = content.data;
+            log.set(String::from_utf8(content.log).unwrap());
             Ok::<_, ()>(())
         })
     };

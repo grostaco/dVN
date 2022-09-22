@@ -615,7 +615,9 @@ name = "frontend"
 version = "0.1.0"
 dependencies = [
  "js-sys",
+ "lazy_static",
  "log",
+ "regex",
  "reqwest",
  "serde",
  "serde_json",

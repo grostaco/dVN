@@ -1,2 +1,3 @@
 # dVN
-A neat discord visual novel engine equipped with a web-based editor 
+Discord visual novel engine written in Rust as a web application
+

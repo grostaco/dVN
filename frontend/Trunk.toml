@@ -1,3 +1,5 @@
+[build]
+public_url = "/"
+dist = "../backend/static"
 [serve]
-# For VSC live server
-port = 5500
+port = 8080

@@ -1,13 +1,12 @@
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
-use web_sys::{InputEvent, Event, HtmlTextAreaElement};
-use yew::{function_component, Callback, Properties, html};
+use web_sys::{Event, HtmlTextAreaElement, InputEvent};
+use yew::{function_component, html, Callback, Properties};
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
     pub value: String,
     pub on_change: Callback<String>,
 }
-
 
 fn get_value_from_input_event(e: InputEvent) -> String {
     e.prevent_default();
@@ -28,6 +27,6 @@ pub fn text_input(props: &Props) -> Html {
     });
 
     html! {
-        <textarea class="text_input" {value} {oninput} />
+        <textarea class="text_input" style="background-color: #181b2b; color: white;" {value} {oninput} />
     }
 }

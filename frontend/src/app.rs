@@ -1,14 +1,12 @@
-use lazy_static::lazy_static;
-use regex::Regex;
 use std::rc::Rc;
 
-use crate::{scene_control::ButtonInput, text_input::TextInput};
 use log::info;
 use reqwest::Client;
 use serde_json::Value;
 use wasm_bindgen_futures::spawn_local;
 use yew::{html, Component, Context, Html};
-use super::nav::Nav;
+
+use super::components::*;
 
 pub enum Msg {
     Submit,
@@ -119,9 +117,6 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        lazy_static! {
-            static ref RE: Regex = Regex::new(r"\[(\S*)\s(\S*)\s+(\S*)\]\s+([^\n\[]*)").unwrap();
-        }
         //info!("Current index: {}", self.index);
 
         let index = self.index;
@@ -133,28 +128,6 @@ impl Component for App {
         //info!("rendered len: {}", self.rendered.len());
         let content = self.rendered.get(index).map(ToString::to_string);
         //info!("{:#?}", self.script_text);
-        let logs = RE.captures_iter(&self.log).map(|capture| {
-            let level = capture.get(2).unwrap().as_str();
-            let message = capture.get(4).unwrap().as_str();
-
-            let color = match level {
-                "DEBUG" => "blue",
-                "INFO" => "green",
-                _ => "yellow",
-            };
-            html! {
-                <>
-                <div style={format!("background-color: {color}; color: white; padding: 5px 10px; border-radius: 16px; text-align: center; vertical-align: middle;")}>
-                        {level}
-                </div>
-                <div class="dflex dflex-justify-center">{message}</div>
-                </>
-                // <div class="dflex dflex-row dflex-justify-center dflex-gap-sm">
-                    
-                    
-                // </div>
-            }
-        });
 
         html! {
             <>
@@ -177,15 +150,9 @@ impl Component for App {
                         <div>
                             <button class="btn" {onclick}>{"Compile"}</button>
                         </div>
-                        
                     </div>
                 </div>
-                <div class="bold" style="color: white; margin-bottom: 1rem;">
-                        {"Logs"}
-                </div>
-                <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem;">
-                    {for logs}
-                </div>
+                <Logs logs={self.log.clone()}/>
             </div>
             </>
         }

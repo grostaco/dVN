@@ -10,8 +10,6 @@ body {
     font-family: 'Wotfard', -apple-system, 'Segoe UI', 'Roboto', 'Ubuntu', 'Cantarell', 'Noto Sans', sans-serif, 'BlinkMacSystemFont', 'Helvetica Neue', 'Arial', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-#editor {}
-
 .text-edit {
     display: flex;
     flex: 0.5;
@@ -75,6 +73,12 @@ a:visited {
     background-color: #181b2b;
     border-style: solid;
     border-color: #181b2b;
+    cursor: pointer;
+}
+
+.btn:hover {
+    border-color: #1C182C;
+    background-color: #1C182C;
 }
 
 .submission .text_input {

@@ -21,7 +21,9 @@ pub fn logs(props: &Props) -> Html {
         let color = match level {
             "DEBUG" => "blue",
             "INFO" => "green",
-            _ => "yellow",
+            "WARNING" => "yellow",
+            "ERROR" => "red",
+            _ => "purple",
         };
         html! {
             <>

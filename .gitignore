@@ -2,6 +2,6 @@
 /frontend/dist
 /assets
 /log
-/backend/static
+/backend/static/
 *.png
 *.script

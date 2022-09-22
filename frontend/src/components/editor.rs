@@ -17,7 +17,7 @@ pub struct Props {
 pub fn editor(props: &Props) -> Html {
     let client = use_ref(Client::new);
     let script = use_mut_ref(String::new);
-    let render_result = use_mut_ref(RenderResult::default);
+    let render_result = use_state(RenderResult::default);
 
     let to_compile = use_state(String::new);
 
@@ -25,7 +25,7 @@ pub fn editor(props: &Props) -> Html {
         let to_compile = to_compile.clone();
         let render_result = render_result.clone();
         use_async(async move {
-            *render_result.borrow_mut() = post_render(client, (*to_compile).to_string()).await;
+            render_result.set(post_render(client, (*to_compile).to_string()).await);
             Ok::<_, ()>(())
         })
     };
@@ -40,16 +40,27 @@ pub fn editor(props: &Props) -> Html {
 
     {
         let to_compile = to_compile;
-        let callback = props.data_cb.clone();
+
         use_effect_with_deps(
             move |_| {
                 render.run();
-                callback.emit(render_result.borrow().clone());
                 || ()
             },
             to_compile,
         );
     }
+
+    {
+        let callback = props.data_cb.clone();
+        use_effect_with_deps(
+            move |render_result| {
+                callback.emit((**render_result).to_owned());
+                || ()
+            },
+            render_result,
+        );
+    }
+
     html! {
         <div class="text-edit dflex-gap-sm">
             <TextInput on_change={script}/>

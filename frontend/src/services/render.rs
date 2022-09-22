@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
 use reqwest::Client;
-use web_sys::console::info;
 
 pub async fn post_render(client: Rc<Client>, script: String) -> String {
     let content = client

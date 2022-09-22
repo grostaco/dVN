@@ -57,7 +57,6 @@ pub fn app() -> Html {
     };
 
     {
-        let render = render.clone();
         let to_compile = to_compile.clone();
         use_effect_with_deps(
             move |_| {
@@ -90,9 +89,9 @@ pub fn app() -> Html {
                     } else {
                         <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", ids.borrow().get(*index).unwrap_or(&0))}/>
                         <div class="dflex dflex-gap-sm" style="flex-direction: column-reverse;">
-                            <Button label="Next" onclick={next}/>
-                            <Button label="Prev" onclick={prev}/>
                             <Button label="Clear Cache" onclick={compile.clone()}/>
+                            <Button label="Prev" onclick={prev}/>
+                            <Button label="Next" onclick={next}/>
                         </div>
                     }
                 </div>

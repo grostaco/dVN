@@ -31,26 +31,3 @@ pub async fn delete_cache(client: Rc<Client>) {
         .await
         .unwrap();
 }
-
-//     // let content: Value = serde_json::from_str(&content).unwrap();
-//     // info!("Received code {} from render endpoint", content["code"]);
-//     // if content["code"].as_u64().unwrap() == 200 {
-//     //     let ids = content["data"]
-//     //         .as_array()
-//     //         .unwrap()
-//     //         .iter()
-//     //         .map(|x| x.as_u64().unwrap())
-//     //         .collect::<Vec<_>>();
-//     //     link.send_message(Msg::UpdateIndex(ids));
-//     //     link.send_message(Msg::UpdateLog(
-//     //         String::from_utf8(
-//     //             content["log"]
-//     //                 .as_array()
-//     //                 .unwrap()
-//     //                 .iter()
-//     //                 .map(|v| v.as_u64().unwrap() as u8)
-//     //                 .collect(),
-//     //         )
-//     //         .unwrap(),
-//     //     ));
-// }

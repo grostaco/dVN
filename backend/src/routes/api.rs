@@ -43,7 +43,6 @@ pub fn render(content: &str) -> String {
         Err(e) => return json!({"code": 300, "reason": e.to_string()}).to_string(),
     };
     let mut ids = Vec::new();
-
     while let Some(result) = engine.next() {
         match result {
             Ok(_) => {
@@ -51,20 +50,11 @@ pub fn render(content: &str) -> String {
                     ids.push(hsh)
                 }
             }
-            Err(e) => return json!({"code": 300, "reason": e.to_string()}).to_string(),
+            Err(_) => return json!({"code": 300, "data": [], "log": read_consume("log/requests.log").as_bytes()}).to_string(),
         }
     }
-
-    let ret = json!({"code": 200, "data": ids, "log": fs::read_to_string("log/requests.log").unwrap().as_bytes()}).to_string();
-
-    fs::OpenOptions::new()
-        .create(true)
-        .write(true)
-        .truncate(true)
-        .open("log/requests.log")
-        .unwrap();
-
-    ret
+    json!({"code": 200, "data": ids, "log": read_consume("log/requests.log").as_bytes()})
+        .to_string()
 }
 
 #[delete("/render")]
@@ -73,4 +63,15 @@ pub async fn clear_rendered() -> io::Result<()> {
     create_dir("assets/rendered/.cache").await.unwrap();
 
     Ok(())
+}
+
+fn read_consume<P: AsRef<Path>>(path: P) -> String {
+    let log = fs::read_to_string(path).unwrap();
+    fs::OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .read(true)
+        .open("log/requests.log")
+        .unwrap();
+    log
 }

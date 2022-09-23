@@ -7,9 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, PartialEq, Default, Clone, Debug)]
 pub struct RenderResult {
     pub code: u64,
-    #[serde(default)]
     pub log: Vec<u8>,
-    #[serde(default)]
     pub data: Vec<u64>,
 }
 

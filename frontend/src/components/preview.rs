@@ -44,7 +44,7 @@ pub fn preview(props: &Props) -> Html {
                 <p>{"Nothing rendered yet!"}</p>
             } else {
                 <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", data.get(*index).unwrap_or(&0))}/>
-                <div class="dflex dflex-gap-sm" style="flex-direction: column-reverse;">
+                <div class="dflex dflex-gap-sm dflex-col-reverse">
                     <Button label="Clear Cache" onclick={onclick_clear}/>
                     <Button label="Prev" onclick={prev}/>
                     <Button label="Next" onclick={next}/>

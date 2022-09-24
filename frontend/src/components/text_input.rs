@@ -30,6 +30,6 @@ pub fn text_input(props: &Props) -> Html {
     };
 
     html! {
-        <textarea class="text_input" style="background-color: #181b2b; color: white;" {oninput} />
+        <textarea id="text-input" {oninput} />
     }
 }

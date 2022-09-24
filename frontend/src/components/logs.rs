@@ -27,21 +27,21 @@ pub fn logs(props: &Props) -> Html {
         };
         html! {
             <>
-            <div style={format!("background-color: {color}; color: white; padding: 5px 10px; border-radius: 16px; text-align: center; vertical-align: middle;")}>
+            <div id="log-level" style={format!("background-color: {color}")}>
                     {level}
             </div>
             <div class="dflex dflex-justify-center">{message}</div>
             </>
-            
+
         }
     });
-    
+
     html! {
         <div class="dflex dflex-col dflex-gap-sm">
-            <div class="bold" style="color: white; margin-bottom: 1rem;">
+            <div class="bold" id="log-title">
                 {"Logs"}
             </div>
-            <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem;">
+            <div id="logs">
                 {for logs}
             </div>
         </div>

@@ -15,7 +15,7 @@ pub fn app() -> Html {
         <>
         <Nav/>
         <div class="main dflex-gap-md">
-            <div class="dflex dflex-row dflex-justify-between">
+            <div class="dflex dflex-row dflex-justify-between dflex-gap-sm">
                 <Preview data={render_result.data.clone()}/>
                 <Editor data_cb={editor_onchange}/>
             </div>

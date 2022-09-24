@@ -1,6 +1,6 @@
 use crate::services::render::{post_render, RenderResult};
 
-use super::{Button, TextInput};
+use super::{Button, FileView, TextInput};
 use reqwest::Client;
 use yew::{
     function_component, html, use_effect_with_deps, use_mut_ref, use_ref, use_state, Callback,
@@ -63,9 +63,12 @@ pub fn editor(props: &Props) -> Html {
 
     html! {
         <div class="text-edit dflex-gap-sm">
-            <TextInput on_change={script}/>
-            <div>
-                <Button label="Compile" onclick={compile}/>
+            <FileView />
+            <div class="dflex-gap-sm" style="flex: 1">
+                <TextInput on_change={script}/>
+                <div>
+                    <Button label="Compile" onclick={compile}/>
+                </div>
             </div>
         </div>
     }

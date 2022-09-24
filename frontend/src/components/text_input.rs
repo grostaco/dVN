@@ -30,6 +30,9 @@ pub fn text_input(props: &Props) -> Html {
     };
 
     html! {
-        <textarea id="text-input" {oninput} />
+        <div class="dflex dflex-col">
+            <div id="editor-name">{"tmp.script*"}</div>
+            <textarea id="text-input" {oninput} />
+        </div>
     }
 }

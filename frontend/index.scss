@@ -12,8 +12,7 @@ body {
 
 .text-edit {
     display: flex;
-    flex: 0.5;
-    flex-direction: column;
+    flex: 1;
 }
 
 .text-edit>textarea {
@@ -128,4 +127,42 @@ a:visited {
     border-radius: 16px;
     text-align: center;
     vertical-align: middle;
+}
+
+#editor-name {
+    background-color: #181b2b;
+    padding: 5px 5px;
+    border-radius: 10px 0 0 0;
+    border-style: solid;
+    border-color: #181b2b;
+}
+
+#file-tree {
+    padding: 4px;
+    overflow: auto;
+}
+
+.name::before {
+    content: "\25B6";
+    padding-left: 4px;
+    font-size: 0.7em;
+    font-family: 'Cambria Math';
+    position: absolute;
+    left: -16px;
+    top: 4px;
+}
+
+.name {
+    cursor: pointer;
+    position: relative;
+    margin-left: 16px;
+}
+
+div.name.expand+.children {
+    display: block;
+}
+
+div.children {
+    padding-left: 27px;
+    display: none;
 }

@@ -12,25 +12,6 @@ use routes::api::{clear_rendered, image_preview, render};
 #[macro_use]
 extern crate rocket;
 
-// pub struct CORS;
-
-// #[rocket::async_trait]
-// impl Fairing for CORS {
-//     fn info(&self) -> Info {
-//         Info {
-//             name: "Add CORS headers to responses",
-//             kind: Kind::Response,
-//         }
-//     }
-
-//     async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
-//         response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
-//         response.set_header(Header::new("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS"));
-//         response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
-//         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
-//     }
-// }
-
 // This program should be run with cargo -p
 #[launch]
 fn rocket() -> _ {

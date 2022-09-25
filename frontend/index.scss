@@ -105,6 +105,10 @@ a:visited {
     flex-direction: column-reverse;
 }
 
+.dflex-grow-1 {
+    flex-grow: 1;
+}
+
 #text-input {
     background-color: #181b2b;
     color: white;
@@ -140,7 +144,7 @@ a:visited {
 #file-tree {
     padding: 4px;
     overflow: auto;
-    max-height: 640px;
+    max-height: 480px;
     background-color: #181b2b;
     flex: 1;
     padding-left: 10px;
@@ -154,6 +158,10 @@ a:visited {
     position: absolute;
     left: -16px;
     top: 4px;
+}
+
+.files>div {
+    cursor: pointer;
 }
 
 .name {

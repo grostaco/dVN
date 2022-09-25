@@ -5,11 +5,16 @@ use crate::services::files::{file_tree, get_files};
 use reqwest::Client;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlDivElement, MouseEvent};
-use yew::{function_component, html, use_ref, Callback};
+use yew::{function_component, html, use_ref, Callback, Properties};
 use yew_hooks::{use_async_with_options, UseAsyncOptions};
 
+#[derive(Properties, PartialEq)]
+pub struct Props {
+    pub onselect: Callback<String>,
+}
+
 #[function_component(FileView)]
-pub fn file_view() -> Html {
+pub fn file_view(props: &Props) -> Html {
     let client = use_ref(Client::new);
 
     let expand = Callback::from(|m: MouseEvent| {
@@ -24,10 +29,24 @@ pub fn file_view() -> Html {
         }
     });
 
+    let view = {
+        let onselect = props.onselect.clone();
+        Callback::from(move |m: MouseEvent| {
+            let event_target = m.target().unwrap();
+            let target: HtmlDivElement = event_target.dyn_into().unwrap();
+
+            onselect.emit(target.get_attribute("path").unwrap());
+        })
+    };
+
     let files = use_async_with_options(
         async move {
             let files = get_files(client).await;
-            Ok::<_, ()>(file_tree(files.iter().map(Path::new).collect(), &expand))
+            Ok::<_, ()>(file_tree(
+                files.iter().map(Path::new).collect(),
+                &expand,
+                &view,
+            ))
         },
         UseAsyncOptions::enable_auto(),
     );

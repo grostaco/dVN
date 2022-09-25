@@ -18,6 +18,17 @@ pub fn editor(props: &Props) -> Html {
     let client = use_ref(Client::new);
     let script = use_mut_ref(String::new);
     let render_result = use_state(RenderResult::default);
+    let file = use_mut_ref(String::new);
+
+    let target_cb = {
+        Callback::from(move |target_file| {
+            *file.borrow_mut() = target_file;
+        })
+    };
+
+    // let text = use_async(async move {
+    //     get_files
+    // });
 
     let to_compile = use_state(String::new);
 
@@ -63,8 +74,8 @@ pub fn editor(props: &Props) -> Html {
 
     html! {
         <div class="text-edit dflex-gap-sm">
-            <FileView />
-            <div class="dflex-gap-sm" style="flex: 1">
+            <FileView onselect={target_cb}/>
+            <div class="dflex dflex-col dflex-gap-sm" style="flex: 1">
                 <TextInput on_change={script}/>
                 <div>
                     <Button label="Compile" onclick={compile}/>

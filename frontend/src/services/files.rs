@@ -18,7 +18,11 @@ pub async fn get_files(client: Rc<Client>) -> Vec<String> {
         .collect()
 }
 
-pub fn file_tree(files: Vec<&'_ Path>, expand_callback: &Callback<MouseEvent>) -> Html {
+pub fn file_tree(
+    files: Vec<&'_ Path>,
+    expand_callback: &Callback<MouseEvent>,
+    file_callback: &Callback<MouseEvent>,
+) -> Html {
     let mut folders = Vec::new();
     let mut folder_files = Vec::new();
 
@@ -33,9 +37,11 @@ pub fn file_tree(files: Vec<&'_ Path>, expand_callback: &Callback<MouseEvent>) -
                 .copied()
                 .collect::<Vec<_>>();
             i += sub_files.len() - 1;
-            folders.push(file_tree(sub_files, expand_callback));
+            folders.push(file_tree(sub_files, expand_callback, file_callback));
         } else {
-            folder_files.push(html! { <div>{file.file_name().unwrap().to_str().unwrap()}</div> });
+            folder_files.push(
+                html! { <div path={file.to_str().unwrap().to_string()}>{file.file_name().unwrap().to_str().unwrap()}</div> },
+            );
         }
         i += 1;
     }
@@ -52,7 +58,7 @@ pub fn file_tree(files: Vec<&'_ Path>, expand_callback: &Callback<MouseEvent>) -
                 }
 
                 if !folder_files.is_empty() {
-                    <div class="files">
+                    <div class="files" onclick={file_callback}>
                         {for folder_files}
                     </div>
                 }

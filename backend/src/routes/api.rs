@@ -28,6 +28,17 @@ pub fn files() -> String {
         .unwrap_or_default()
 }
 
+#[post("/file/assets/<path>", data = "<content>")]
+pub fn post_file(path: String, content: &str) {
+    OpenOptions::new()
+        .truncate(true)
+        .write(true)
+        .open(format!("assets/{}", path))
+        .unwrap()
+        .write_all(content.as_bytes())
+        .unwrap();
+}
+
 #[get("/rendered/<id>/preview.png")]
 pub fn image_preview(id: u64) -> std::io::Result<Vec<u8>> {
     let p = Path::new("assets/rendered/.cache")

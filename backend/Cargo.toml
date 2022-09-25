@@ -10,3 +10,4 @@ rocket = { version = "0.5.0-rc.2", features = ["json"] }
 image_rpg = { path = ".." }
 log = { version = "0.4.14" }
 log4rs = { version = "1.1.1", features = ["file_appender"]}
+walkdir = "2"

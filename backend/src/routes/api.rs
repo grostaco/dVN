@@ -1,6 +1,6 @@
 use image_rpg::core::engine::Engine;
 use rocket::{
-    serde::{json::serde_json::json, Serialize},
+    serde::json::serde_json::json,
     tokio::fs::{create_dir, remove_dir_all},
 };
 use std::{
@@ -8,11 +8,24 @@ use std::{
     io::{self, Write},
     path::Path,
 };
+use walkdir::WalkDir;
 
-#[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct RenderResult {
-    hashed_ids: Vec<u64>,
+#[get("/files")]
+pub fn files() -> String {
+    WalkDir::new("assets")
+        .into_iter()
+        .filter_map(|e| {
+            e.ok().map(|entry| {
+                entry
+                    .path()
+                    .to_str()
+                    .unwrap()
+                    .to_string()
+                    .replace('\\', "/")
+            })
+        })
+        .reduce(|a, b| a + "," + &b)
+        .unwrap_or_default()
 }
 
 #[get("/rendered/<id>/preview.png")]

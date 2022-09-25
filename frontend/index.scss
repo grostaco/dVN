@@ -140,6 +140,10 @@ a:visited {
 #file-tree {
     padding: 4px;
     overflow: auto;
+    max-height: 640px;
+    background-color: #181b2b;
+    flex: 1;
+    padding-left: 10px;
 }
 
 .name::before {
@@ -158,6 +162,12 @@ a:visited {
     margin-left: 16px;
 }
 
+div.name.expand::before {
+    transform: rotate(90deg);
+    left: -15px;
+    top: 2px;
+}
+
 div.name.expand+.children {
     display: block;
 }
@@ -165,4 +175,16 @@ div.name.expand+.children {
 div.children {
     padding-left: 27px;
     display: none;
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(32, 34, 37, .6);
+}
+
+::-webkit-scrollbar-track {
+    background-color: #717171;
 }

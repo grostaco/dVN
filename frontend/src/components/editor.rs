@@ -20,17 +20,20 @@ pub fn editor(props: &Props) -> Html {
     let client = use_ref(Client::new);
     let script = use_mut_ref(String::new);
     let render_result = use_state(RenderResult::default);
-    let file = use_mut_ref(|| "assets/autogen_script.script".to_string());
+    let file = use_mut_ref(|| "assets/tmp.script".to_string());
 
     let text = {
         let file = file.clone();
         let client = client.clone();
+        let script = script.clone();
         use_async(async move {
             let mut content = get_file(client, file.borrow().as_str()).await;
+            log::info!("File {}'s content:\n {}", *file.borrow(), content);
             // > 4096 KiB is probably not going to load well
             if content.len() > 4096 {
                 content = "File too large to load properly. If this is an actual script file, consider refactoring it into multiple files with @jump.".to_string();
             }
+            *script.borrow_mut() = content.clone();
             Ok::<_, ()>(content)
         })
     };
@@ -40,7 +43,7 @@ pub fn editor(props: &Props) -> Html {
         let script = script.clone();
         let client = client.clone();
         use_async(async move {
-            log::info!("Doing a thing");
+            log::info!("Saving {}'s content:\n{}", *file.borrow(), *script.borrow());
             post_file(client, file.borrow().as_str(), script.borrow().to_string()).await;
             Ok::<_, ()>(())
         })
@@ -50,6 +53,7 @@ pub fn editor(props: &Props) -> Html {
         let text = text.clone();
         let file = file.clone();
         Callback::from(move |target_file| {
+            log::info!("File switched to {target_file}");
             *file.borrow_mut() = target_file;
             text.run();
         })
@@ -70,6 +74,7 @@ pub fn editor(props: &Props) -> Html {
         let to_compile = to_compile.clone();
         let script = script.clone();
         Callback::from(move |_| {
+            log::info!("Compilation requested!");
             to_compile.set(script.borrow().to_string());
         })
     };

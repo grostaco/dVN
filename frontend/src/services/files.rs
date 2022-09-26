@@ -18,6 +18,28 @@ pub async fn get_files(client: Rc<Client>) -> Vec<String> {
         .collect()
 }
 
+pub async fn get_file(client: Rc<Client>, file: &str) -> String {
+    client
+        .get(format!("http://127.0.0.1:8000/{file}"))
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap()
+}
+
+pub async fn post_file(client: Rc<Client>, file: &str, content: String) -> String {
+    client
+        .post(format!("http://127.0.0.1:8000/api/file/{file}"))
+        .body(content)
+        .send()
+        .await
+        .unwrap();
+
+    String::new()
+}
+
 pub fn file_tree(
     files: Vec<&'_ Path>,
     expand_callback: &Callback<MouseEvent>,
@@ -40,7 +62,7 @@ pub fn file_tree(
             folders.push(file_tree(sub_files, expand_callback, file_callback));
         } else {
             folder_files.push(
-                html! { <div path={file.to_str().unwrap().to_string()}>{file.file_name().unwrap().to_str().unwrap()}</div> },
+                html! { <div path={file.to_str().unwrap().to_string()} onclick={file_callback}>{file.file_name().unwrap().to_str().unwrap()}</div> },
             );
         }
         i += 1;
@@ -58,7 +80,7 @@ pub fn file_tree(
                 }
 
                 if !folder_files.is_empty() {
-                    <div class="files" onclick={file_callback}>
+                    <div class="files">
                         {for folder_files}
                     </div>
                 }

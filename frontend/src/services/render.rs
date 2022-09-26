@@ -1,4 +1,3 @@
-use log::info;
 use std::rc::Rc;
 
 use reqwest::Client;
@@ -21,9 +20,7 @@ pub async fn post_render(client: Rc<Client>, script: String) -> RenderResult {
         .text()
         .await
         .unwrap();
-
-    info!("content: {content}");
-
+    //info!("content: {content}");
     serde_json::from_str(&content).unwrap()
 }
 

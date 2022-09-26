@@ -1,6 +1,8 @@
-use crate::services::render::{post_render, RenderResult};
-
 use super::{Button, FileView, TextInput};
+use crate::services::{
+    files::{get_file, post_file},
+    render::{post_render, RenderResult},
+};
 use reqwest::Client;
 use yew::{
     function_component, html, use_effect_with_deps, use_mut_ref, use_ref, use_state, Callback,
@@ -18,17 +20,40 @@ pub fn editor(props: &Props) -> Html {
     let client = use_ref(Client::new);
     let script = use_mut_ref(String::new);
     let render_result = use_state(RenderResult::default);
-    let file = use_mut_ref(String::new);
+    let file = use_mut_ref(|| "assets/autogen_script.script".to_string());
 
-    let target_cb = {
-        Callback::from(move |target_file| {
-            *file.borrow_mut() = target_file;
+    let text = {
+        let file = file.clone();
+        let client = client.clone();
+        use_async(async move {
+            let mut content = get_file(client, file.borrow().as_str()).await;
+            // > 4096 KiB is probably not going to load well
+            if content.len() > 4096 {
+                content = "File too large to load properly. If this is an actual script file, consider refactoring it into multiple files with @jump.".to_string();
+            }
+            Ok::<_, ()>(content)
         })
     };
 
-    // let text = use_async(async move {
-    //     get_files
-    // });
+    let save = {
+        let file = file.clone();
+        let script = script.clone();
+        let client = client.clone();
+        use_async(async move {
+            log::info!("Doing a thing");
+            post_file(client, file.borrow().as_str(), script.borrow().to_string()).await;
+            Ok::<_, ()>(())
+        })
+    };
+
+    let target_cb = {
+        let text = text.clone();
+        let file = file.clone();
+        Callback::from(move |target_file| {
+            *file.borrow_mut() = target_file;
+            text.run();
+        })
+    };
 
     let to_compile = use_state(String::new);
 
@@ -48,6 +73,8 @@ pub fn editor(props: &Props) -> Html {
             to_compile.set(script.borrow().to_string());
         })
     };
+
+    let save_cb = { Callback::from(move |_| save.run()) };
 
     {
         let to_compile = to_compile;
@@ -76,9 +103,13 @@ pub fn editor(props: &Props) -> Html {
         <div class="text-edit dflex-gap-sm">
             <FileView onselect={target_cb}/>
             <div class="dflex dflex-col dflex-gap-sm" style="flex: 1">
-                <TextInput on_change={script}/>
+                <div class="dflex dflex-col dflex-grow-1">
+                    <div id="editor-name">{file.borrow().to_string()}</div>
+                    <TextInput on_change={script} content={text.data.clone().unwrap_or_default()}/>
+                </div>
                 <div>
                     <Button label="Compile" onclick={compile}/>
+                    <Button label="Save" onclick={save_cb}/>
                 </div>
             </div>
         </div>

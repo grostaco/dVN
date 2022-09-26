@@ -1,8 +1,7 @@
-use std::path::Path;
-
 use super::Loading;
 use crate::services::files::{file_tree, get_files};
 use reqwest::Client;
+use std::path::Path;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlDivElement, MouseEvent};
 use yew::{function_component, html, use_ref, Callback, Properties};
@@ -34,7 +33,6 @@ pub fn file_view(props: &Props) -> Html {
         Callback::from(move |m: MouseEvent| {
             let event_target = m.target().unwrap();
             let target: HtmlDivElement = event_target.dyn_into().unwrap();
-
             onselect.emit(target.get_attribute("path").unwrap());
         })
     };

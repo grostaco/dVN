@@ -2,11 +2,12 @@ use std::{cell::RefCell, rc::Rc};
 
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{Event, HtmlTextAreaElement, InputEvent};
-use yew::{function_component, html, Callback, Properties};
+use yew::{function_component, html, use_effect, Callback, Properties};
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
     pub on_change: Rc<RefCell<String>>,
+    pub content: String,
 }
 
 fn get_value_from_input_event(e: InputEvent) -> String {
@@ -21,20 +22,24 @@ fn get_value_from_input_event(e: InputEvent) -> String {
 
 #[function_component(TextInput)]
 pub fn text_input(props: &Props) -> Html {
-    let Props { on_change } = props.clone();
-
+    let Props { on_change, content } = props.clone();
     let oninput = {
         Callback::from(move |input_event: InputEvent| {
             *on_change.borrow_mut() = get_value_from_input_event(input_event);
         })
     };
 
-    html! {
-        <div class="dflex dflex-col dflex-grow-1">
-            <div id="editor-name">{"tmp.script*"}</div>
-            <textarea id="text-input" style="flex: 1" {oninput} />
-        </div>
+    use_effect(move || {
+        let element = gloo::utils::document()
+            .get_element_by_id("text-input")
+            .unwrap();
+        let text_area: HtmlTextAreaElement = element.dyn_into().unwrap();
+        text_area.set_value(&content);
+        || ()
+    });
 
+    html! {
+        <textarea id="text-input" style="flex: 1" data-gramm="false" {oninput} />
     }
 }
 

@@ -6,7 +6,7 @@ use rocket::{
 use std::{
     fs::{self, OpenOptions},
     io::{self, Write},
-    path::Path,
+    path::{Path, PathBuf},
 };
 use walkdir::WalkDir;
 
@@ -28,12 +28,12 @@ pub fn files() -> String {
         .unwrap_or_default()
 }
 
-#[post("/file/assets/<path>", data = "<content>")]
-pub fn post_file(path: String, content: &str) {
+#[post("/file/assets/<path..>", data = "<content>")]
+pub fn post_file(path: PathBuf, content: &str) {
     OpenOptions::new()
         .truncate(true)
         .write(true)
-        .open(format!("assets/{}", path))
+        .open(format!("assets/{}", path.display()))
         .unwrap()
         .write_all(content.as_bytes())
         .unwrap();

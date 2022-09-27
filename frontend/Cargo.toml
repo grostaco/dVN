@@ -9,7 +9,6 @@ edition = "2021"
 log = { version = "0.4.14" }
 yew = "0.19.3"
 js-sys = "0.3.46"
-web-sys = { version = "0.3", features = ["Event", "EventTarget", "InputEvent", "HtmlDivElement", "DomTokenList", "console", "Document", "Element"] }
 wasm-bindgen = "0.2"
 wasm-logger = "0.2.0"
 reqwest = { version = "0.11.11"}
@@ -22,3 +21,14 @@ thiserror = "1.0"
 yew-hooks = "0.1.56"
 gloo = "0.8.0"
 gloo-timers = "0.2.4"
+
+[dependencies.web-sys]
+version = "0.3"
+features = ["Event", 
+            "EventTarget", 
+            "InputEvent", 
+            "HtmlDivElement", 
+            "DomTokenList", 
+            "console", 
+            "Document", 
+            "Element"]

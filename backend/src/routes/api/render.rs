@@ -1,43 +1,17 @@
+use std::{
+    fs::{self, OpenOptions},
+    io::Write,
+    path::Path,
+};
+
 use image_rpg::core::engine::Engine;
 use rocket::{
     serde::json::serde_json::json,
-    tokio::fs::{create_dir, remove_dir_all},
+    tokio::{
+        fs::{create_dir, remove_dir_all},
+        io,
+    },
 };
-use std::{
-    fs::{self, OpenOptions},
-    io::{self, Write},
-    path::{Path, PathBuf},
-};
-use walkdir::WalkDir;
-
-#[get("/files")]
-pub fn files() -> String {
-    WalkDir::new("assets")
-        .into_iter()
-        .filter_map(|e| {
-            e.ok().map(|entry| {
-                entry
-                    .path()
-                    .to_str()
-                    .unwrap()
-                    .to_string()
-                    .replace('\\', "/")
-            })
-        })
-        .reduce(|a, b| a + "," + &b)
-        .unwrap_or_default()
-}
-
-#[post("/file/assets/<path..>", data = "<content>")]
-pub fn post_file(path: PathBuf, content: &str) {
-    OpenOptions::new()
-        .truncate(true)
-        .write(true)
-        .open(format!("assets/{}", path.display()))
-        .unwrap()
-        .write_all(content.as_bytes())
-        .unwrap();
-}
 
 #[get("/rendered/<id>/preview.png")]
 pub fn image_preview(id: u64) -> std::io::Result<Vec<u8>> {
@@ -50,9 +24,6 @@ pub fn image_preview(id: u64) -> std::io::Result<Vec<u8>> {
 #[post("/render", data = "<content>")]
 pub fn render(content: &str) -> String {
     let p = Path::new("assets/autogen_script.script");
-    // fs::remove_file("log/requests.log").ok();
-    //
-
     OpenOptions::new()
         .create(true)
         .write(true)

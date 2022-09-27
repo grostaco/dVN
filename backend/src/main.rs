@@ -7,7 +7,7 @@ use log4rs::{
 use rocket::fs::FileServer;
 
 mod routes;
-use routes::api::{clear_rendered, files, image_preview, post_file, render};
+use routes::api::*;
 
 #[macro_use]
 extern crate rocket;
@@ -46,6 +46,14 @@ fn rocket() -> _ {
         .mount("/assets", FileServer::from("assets").rank(1))
         .mount(
             "/api",
-            routes![image_preview, render, clear_rendered, files, post_file],
+            routes![
+                render::image_preview,
+                render::render,
+                render::clear_rendered,
+                file::files,
+                file::post_file,
+                engine::engine_init,
+                engine::engine_next,
+            ],
         )
 }

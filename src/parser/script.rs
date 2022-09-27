@@ -1,6 +1,14 @@
-use std::{fs::{self, File}, io::{self, BufReader, BufRead}};
+use std::{
+    fs::{self, File},
+    io::{self, BufRead, BufReader},
+};
 
-use super::{directives::Directive, error::{Error, Span, ErrorCause}};
+use serde::{Deserialize, Serialize};
+
+use super::{
+    directives::Directive,
+    error::{Error, ErrorCause, Span},
+};
 
 pub struct Script {
     buf: BufReader<File>,
@@ -9,13 +17,13 @@ pub struct Script {
     last_line: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Dialogue {
     pub name: String,
     pub content: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ScriptContext {
     Directive(Directive),
     Dialogue(Dialogue),
@@ -25,8 +33,13 @@ impl Script {
     pub fn new(path: &str) -> io::Result<Self> {
         let file = fs::File::open(path)?;
 
-        Ok(Self { buf: BufReader::new(file), file: path.to_owned(), line: 0, last_line: None })
-    }    
+        Ok(Self {
+            buf: BufReader::new(file),
+            file: path.to_owned(),
+            line: 0,
+            last_line: None,
+        })
+    }
 
     pub fn file(&self) -> &str {
         self.file.as_str()
@@ -55,7 +68,6 @@ impl Iterator for Script {
                     Ok(_) => break,
                     Err(e) => panic!("Unhandled IO error {:#?}", e),
                 }
-                
             }
         }
         s = s.trim().to_string();
@@ -64,11 +76,19 @@ impl Iterator for Script {
             match Directive::parse(&s) {
                 Some(directive) => match directive {
                     Ok(directive) => Some(Ok(ScriptContext::Directive(directive))),
-                    Err(e) => Some(Err(Error::new(&self.file, Span::new(self.line, 1), e.into()) )),
-                }
-                None => Some(Err(Error::new(&self.file, Span::new(self.line, 1), ErrorCause::Unrecognized(s.get(1..).unwrap().to_owned())))),
+                    Err(e) => Some(Err(Error::new(
+                        &self.file,
+                        Span::new(self.line, 1),
+                        e.into(),
+                    ))),
+                },
+                None => Some(Err(Error::new(
+                    &self.file,
+                    Span::new(self.line, 1),
+                    ErrorCause::Unrecognized(s.get(1..).unwrap().to_owned()),
+                ))),
             }
-        // Dialogue case (hopefully comment support soon)  
+        // Dialogue case (hopefully comment support soon)
         } else if s.starts_with('[') {
             let mut dialogue = String::new();
             let mut line = String::new();
@@ -79,20 +99,22 @@ impl Iterator for Script {
                     if c == '@' || c == '[' {
                         self.last_line = Some(line);
                         break;
-                    } 
+                    }
                     dialogue.push_str(line.trim());
                     line.clear();
                 } else {
                     break;
                 }
             }
-            
+
             Some(Ok(ScriptContext::Dialogue(Dialogue {
-                name: s.get(1..s.len() - 1).map_or( String::new(), |v| v.to_string()),
+                name: s
+                    .get(1..s.len() - 1)
+                    .map_or(String::new(), |v| v.to_string()),
                 content: dialogue,
             })))
         } else {
             None
-        }   
+        }
     }
 }

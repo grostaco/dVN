@@ -1141,6 +1141,7 @@ dependencies = [
  "imageproc",
  "log",
  "rusttype",
+ "serde",
  "thiserror",
 ]
 

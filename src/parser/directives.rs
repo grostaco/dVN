@@ -1,8 +1,8 @@
 use derive_directive::{directive, DirectiveEnum};
 use directive_errors::VerifyError;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
-#[derive(DirectiveEnum)]
+#[derive(Debug, Clone, Deserialize, Serialize, DirectiveEnum)]
 pub enum Directive {
     Jump(Jump),
     SpriteLoad(SpriteLoad),
@@ -13,7 +13,7 @@ pub enum Directive {
     DialogueColor(DialogueColor),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[directive(keyword = "jump", verify = jump_verify)]
 pub struct Jump {
     endpoint: String,
@@ -21,7 +21,7 @@ pub struct Jump {
     choice_b: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[directive(keyword = "sprite_load")]
 pub struct SpriteLoad {
     name: String,
@@ -29,14 +29,13 @@ pub struct SpriteLoad {
     scale: Option<f64>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[directive(keyword = "sprite_hide")]
 pub struct SpriteHide {
     name: String,
 }
 
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[directive(keyword = "sprite_show")]
 pub struct SpriteShow {
     name: String,
@@ -44,27 +43,27 @@ pub struct SpriteShow {
     y: u64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[directive(keyword = "sprite_prio")]
 pub struct SpritePriority {
     name: String,
     priority: i64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[directive(keyword = "bg_load")]
 pub struct BgLoad {
     name: String,
     path: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[directive(keyword = "bg_show")]
 pub struct BgShow {
     name: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[directive(keyword = "dialogue_color")]
 pub struct DialogueColor {
     name: String,
@@ -79,9 +78,11 @@ pub struct DialogueColor {
 // pub struct BgHide {
 // }
 
-fn jump_verify(jump: &Jump) -> Result<(), VerifyError>{
+fn jump_verify(jump: &Jump) -> Result<(), VerifyError> {
     if jump.choice_a.is_some() && jump.choice_b.is_none() {
-        return Err(VerifyError::Custom("choices must be both set or not set at all".to_string()));
+        return Err(VerifyError::Custom(
+            "choices must be both set or not set at all".to_string(),
+        ));
     }
 
     Ok(())

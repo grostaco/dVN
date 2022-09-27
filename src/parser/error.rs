@@ -4,11 +4,13 @@ use directive_errors::{ParseError, VerifyError};
 use image::ImageError;
 use thiserror::Error;
 
+#[derive(Debug)]
 pub struct Span {
     pub line: u64,
     pub column: u64,
 }
 
+#[derive(Debug)]
 pub struct Error {
     pub file: String,
     pub span: Span,
@@ -29,12 +31,16 @@ pub enum ErrorCause {
     IoError(#[from] std::io::Error),
 
     #[error("{0}")]
-    ImageError(#[from] ImageError)
+    ImageError(#[from] ImageError),
 }
 
 impl Error {
     pub fn new<S: Into<String>>(file: S, span: Span, cause: ErrorCause) -> Self {
-        Self { file: file.into(), span, cause }
+        Self {
+            file: file.into(),
+            span,
+            cause,
+        }
     }
 }
 
@@ -46,6 +52,10 @@ impl Span {
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}:{} error: {}", self.file, self.span.line, self.span.column, self.cause)
+        write!(
+            f,
+            "{}:{}:{} error: {}",
+            self.file, self.span.line, self.span.column, self.cause
+        )
     }
 }

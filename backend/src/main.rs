@@ -1,3 +1,6 @@
+use std::sync::Mutex;
+
+use image_rpg::core::engine::Engine;
 use log4rs::{
     append::{console::ConsoleAppender, file::FileAppender},
     config::{Appender, Logger, Root},
@@ -42,6 +45,7 @@ fn rocket() -> _ {
     log4rs::init_config(config).unwrap();
 
     rocket::build()
+        .manage(Mutex::new(None::<Option<Engine>>))
         .mount("/", FileServer::from("backend/static"))
         .mount("/assets", FileServer::from("assets").rank(1))
         .mount(

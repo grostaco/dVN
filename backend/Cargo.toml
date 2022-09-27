@@ -6,8 +6,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = { version = "0.5.0-rc.2", features = ["json"] }
-image_rpg = { path = ".." }
-log = { version = "0.4.14" }
-log4rs = { version = "1.1.1", features = ["file_appender"]}
+log = "0.4.14" 
 walkdir = "2"
+
+[dependencies.rocket]
+version = "0.5.0-rc.2"
+features = ['json']
+
+[dependencies.log4rs]
+version = "1.1.1"
+features = ["file_appender"]
+
+[dependencies.image_rpg]
+path = ".."

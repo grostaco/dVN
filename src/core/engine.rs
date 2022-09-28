@@ -279,7 +279,6 @@ impl Iterator for Engine {
                         }
                         Err(e) => {
                             error!("Cannot load bg: {}", e);
-                            panic!()
                         }
                     },
                     Directive::BgShow(bs) => {

@@ -21,6 +21,8 @@ thiserror = "1.0"
 yew-hooks = "0.1.56"
 gloo = "0.8.0"
 gloo-timers = "0.2.4"
+yew-router = "0.16"
+image_rpg = { path = ".." }
 
 [dependencies.web-sys]
 version = "0.3"

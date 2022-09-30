@@ -10,8 +10,8 @@ pub fn nav() -> Html {
                 <div>{{"Made with Rust!"}}</div>
             </div>
             <div class="dflex dflex-row dflex-gap-md">
-                <a href="#">{{"Home"}}</a>
-                <a href="http://127.0.0.1:8000/">{{"GitHub"}}</a>
+                <a href="http://127.0.0.1:8000/">{{"Home"}}</a>
+                <a href="https://github.com/grostaco">{{"GitHub"}}</a>
                 <a href="https://grostaco.herokuapp.com/">{{"About Me"}}</a>
                 <a href="https://github.com/grostaco/dVN">{{"This site's code"}}</a>
             </div>

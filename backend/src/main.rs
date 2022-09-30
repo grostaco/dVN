@@ -45,8 +45,15 @@ fn rocket() -> _ {
     log4rs::init_config(config).unwrap();
 
     rocket::build()
-        .mount("/", FileServer::new("backend/static", Options::Index))
-        .mount("/assets", FileServer::from("assets").rank(1))
+        .mount(
+            "/",
+            FileServer::new("backend/static", Options::Index).rank(1),
+        )
+        .mount(
+            "/play",
+            FileServer::new("backend/static/index.html", Options::IndexFile),
+        )
+        .mount("/assets", FileServer::from("assets").rank(2))
         .mount(
             "/api",
             routes![

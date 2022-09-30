@@ -1,5 +1,6 @@
 use image_rpg::parser::script::ScriptContext;
 use reqwest::{Client, StatusCode};
+use serde::Deserialize;
 use std::rc::Rc;
 
 pub async fn init_engine(client: Rc<Client>, script_file: String) {
@@ -11,9 +12,15 @@ pub async fn init_engine(client: Rc<Client>, script_file: String) {
         .unwrap();
 }
 
-pub async fn next_engine(client: Rc<Client>, choice: bool) -> Option<ScriptContext> {
+#[derive(Deserialize)]
+pub struct EngineResponse {
+    id: u64,
+    context: ScriptContext,
+}
+
+pub async fn next_engine(client: Rc<Client>, choice: bool) -> Option<EngineResponse> {
     let response = client
-        .post("http://127.0.0.1:8000/api/engine/init")
+        .post("http://127.0.0.1:8000/api/engine/next")
         .query(&[("choice", choice)])
         .send()
         .await
@@ -22,6 +29,6 @@ pub async fn next_engine(client: Rc<Client>, choice: bool) -> Option<ScriptConte
         return None;
     }
 
-    let result: ScriptContext = serde_json::from_str(&response.text().await.unwrap()).unwrap();
+    let result: EngineResponse = serde_json::from_str(&response.text().await.unwrap()).unwrap();
     Some(result)
 }

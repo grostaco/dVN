@@ -27,12 +27,7 @@ pub fn editor(props: &Props) -> Html {
         let client = client.clone();
         let script = script.clone();
         use_async(async move {
-            let mut content = get_file(client, file.borrow().as_str()).await;
-            log::info!("File {}'s content:\n {}", *file.borrow(), content);
-            // > 4096 KiB is probably not going to load well
-            if content.len() > 4096 {
-                content = "File too large to load properly. If this is an actual script file, consider refactoring it into multiple files with @jump.".to_string();
-            }
+            let content = get_file(client, file.borrow().as_str()).await;
             *script.borrow_mut() = content.clone();
             Ok::<_, ()>(content)
         })
@@ -104,13 +99,19 @@ pub fn editor(props: &Props) -> Html {
         );
     }
 
+    let text = text.data.clone().unwrap_or_default();
+    let (text, readonly) = if text.len() > 4096 {
+        ("File too large to load properly. If this is an actual script file, consider refactoring it into multiple files with @jump.".to_string(), true)
+    } else {
+        (text, false)
+    };
     html! {
         <div class="text-edit dflex-gap-sm">
             <FileView onselect={target_cb}/>
             <div class="dflex dflex-col dflex-gap-sm" style="flex: 1">
                 <div class="dflex dflex-col dflex-grow-1">
                     <div id="editor-name">{file.borrow().to_string()}</div>
-                    <TextInput on_change={script} content={text.data.clone().unwrap_or_default()}/>
+                    <TextInput on_change={script} content={text} {readonly} />
                 </div>
                 <div>
                     <Button label="Compile" onclick={compile}/>

@@ -8,6 +8,8 @@ use yew::{function_component, html, use_effect, Callback, Properties};
 pub struct Props {
     pub on_change: Rc<RefCell<String>>,
     pub content: String,
+    #[prop_or(true)]
+    pub readonly: bool,
 }
 
 fn get_value_from_input_event(e: InputEvent) -> String {
@@ -22,7 +24,11 @@ fn get_value_from_input_event(e: InputEvent) -> String {
 
 #[function_component(TextInput)]
 pub fn text_input(props: &Props) -> Html {
-    let Props { on_change, content } = props.clone();
+    let Props {
+        on_change,
+        content,
+        readonly,
+    } = props.clone();
     let oninput = {
         Callback::from(move |input_event: InputEvent| {
             *on_change.borrow_mut() = get_value_from_input_event(input_event);
@@ -39,7 +45,7 @@ pub fn text_input(props: &Props) -> Html {
     });
 
     html! {
-        <textarea id="text-input" style="flex: 1" data-gramm="false" {oninput} />
+        <textarea id="text-input" style="flex: 1" data-gramm="false" {readonly} {oninput} />
     }
 }
 

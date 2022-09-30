@@ -3,6 +3,7 @@ use app::App;
 mod app;
 mod components;
 mod error;
+pub mod routes;
 pub mod services;
 
 fn main() {

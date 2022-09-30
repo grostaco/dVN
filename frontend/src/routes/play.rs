@@ -14,6 +14,7 @@ pub fn play() -> Html {
     let client = use_ref(Client::new);
     let choice = use_mut_ref(bool::default);
     let script_file = use_mut_ref(String::new);
+    let engine_response = use_mut_ref(Option::default);
 
     let init_engine = {
         let client = client.clone();
@@ -26,8 +27,9 @@ pub fn play() -> Html {
 
     let next_engine = {
         let client = client;
+        let engine_response = engine_response.clone();
         use_async(async move {
-            next_engine(client, *choice.borrow()).await;
+            *engine_response.borrow_mut() = next_engine(client, *choice.borrow()).await;
             Ok::<_, ()>(())
         })
     };
@@ -54,7 +56,7 @@ pub fn play() -> Html {
                 <Selection {onselect}/>
             }
             else {
-                <p>{"A"}</p>
+                <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", engine_response.borrow().as_ref().map(|x| x.id).unwrap_or(0))}/>
                 <Button onclick={next} label="Next"/>
             }
         </div>

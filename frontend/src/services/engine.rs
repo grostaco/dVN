@@ -14,8 +14,8 @@ pub async fn init_engine(client: Rc<Client>, script_file: String) {
 
 #[derive(Deserialize)]
 pub struct EngineResponse {
-    id: u64,
-    context: ScriptContext,
+    pub id: u64,
+    pub context: ScriptContext,
 }
 
 pub async fn next_engine(client: Rc<Client>, choice: bool) -> Option<EngineResponse> {

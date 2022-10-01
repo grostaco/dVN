@@ -2,7 +2,10 @@ use crate::{
     components::{Nav, PlayMusic, PlaySound, Selection},
     services::engine::{init_engine, next_engine},
 };
-use image_rpg::parser::{directives::Directive, script::ScriptContext};
+use image_rpg::parser::{
+    directives::{Directive, MusicPlay, SoundPlay},
+    script::ScriptContext,
+};
 use reqwest::Client;
 use wasm_bindgen::{prelude::Closure, JsCast};
 use yew::{function_component, html, use_mut_ref, use_ref, use_state, Callback};
@@ -51,8 +54,8 @@ pub fn play_view() -> Html {
     let choice = use_mut_ref(bool::default);
     let ended = use_mut_ref(bool::default);
 
-    let music = use_state(String::default);
-    let sound = use_state(String::default);
+    let music = use_state(MusicPlay::default);
+    let sound = use_state(SoundPlay::default);
 
     let next_engine = {
         let client = client;
@@ -68,10 +71,10 @@ pub fn play_view() -> Html {
                     if let ScriptContext::Directive(directive) = &response.context {
                         match directive {
                             Directive::MusicPlay(musicplay) => {
-                                music.set(musicplay.path.clone());
+                                music.set(musicplay.clone());
                             }
                             Directive::SoundPlay(soundplay) => {
-                                sound.set(soundplay.path.clone());
+                                sound.set(soundplay.clone());
                             }
                             _ => {}
                         }
@@ -109,8 +112,8 @@ pub fn play_view() -> Html {
             if !ended {
                 if let Some(id) = id {
                     <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", id) }/>
-                    <PlayMusic path={music.to_string()}/>
-                    <PlaySound path={sound.to_string()}/>
+                    <PlayMusic path={music.path.to_string()} volume={music.volume.unwrap_or(1.0)} />
+                    <PlaySound path={sound.path.to_string()} volume={sound.volume.unwrap_or(1.0)}/>
                 } else {
                     <p>{"Press <enter> to start!"}</p>
                 }

@@ -6,14 +6,18 @@ use yew_hooks::use_effect_update_with_deps;
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub path: String,
+    pub volume: f64,
 }
 
 #[function_component(PlaySound)]
 pub fn play_sound(props: &Props) -> Html {
     let sound = props.path.clone();
+    let volume = props.volume;
     use_effect_update_with_deps(
         move |sound| {
             let element = HtmlAudioElement::new_with_src(sound.as_str()).unwrap();
+            element.set_volume(volume);
+
             let promise = element.play().unwrap();
             let future = wasm_bindgen_futures::JsFuture::from(promise);
             spawn_local(async move {

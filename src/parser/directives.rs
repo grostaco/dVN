@@ -75,14 +75,14 @@ pub struct DialogueColor {
     alpha: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[directive(keyword = "sound_play")]
 pub struct SoundPlay {
     path: String,
     volume: Option<f64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[directive(keyword = "music_play")]
 pub struct MusicPlay {
     path: String,

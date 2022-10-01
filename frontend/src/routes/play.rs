@@ -1,19 +1,11 @@
 use crate::{
-    components::{Button, FileView, Nav, TextInput},
-    services::{
-        engine::{init_engine, next_engine},
-        files::get_file,
-    },
+    components::{Nav, PlayMusic, PlaySound, Selection},
+    services::engine::{init_engine, next_engine},
 };
 use image_rpg::parser::{directives::Directive, script::ScriptContext};
 use reqwest::Client;
 use wasm_bindgen::{prelude::Closure, JsCast};
-use wasm_bindgen_futures::spawn_local;
-use web_sys::HtmlAudioElement;
-use yew::{
-    function_component, html, use_effect_with_deps, use_mut_ref, use_ref, use_state, Callback,
-    Properties,
-};
+use yew::{function_component, html, use_mut_ref, use_ref, use_state, Callback};
 use yew_hooks::{use_async, use_effect_once};
 
 #[function_component(Play)]
@@ -57,6 +49,7 @@ pub fn play_view() -> Html {
     let client = use_ref(Client::new);
     let engine_response = use_mut_ref(Option::default);
     let choice = use_mut_ref(bool::default);
+    let ended = use_mut_ref(bool::default);
 
     let music = use_state(String::default);
     let sound = use_state(String::default);
@@ -66,6 +59,7 @@ pub fn play_view() -> Html {
         let engine_response = engine_response.clone();
         let music = music.clone();
         let sound = sound.clone();
+        let ended = ended.clone();
         use_async(async move {
             loop {
                 *engine_response.borrow_mut() = next_engine(client.clone(), *choice.borrow()).await;
@@ -86,45 +80,13 @@ pub fn play_view() -> Html {
                         break;
                     }
                 } else {
+                    *ended.borrow_mut() = true;
                     break;
                 }
             }
             Ok::<_, ()>(())
         })
     };
-
-    {
-        use_effect_with_deps(
-            move |music| {
-                let element = HtmlAudioElement::new_with_src(music.as_str()).unwrap();
-                let promise = element.play().unwrap();
-                let future = wasm_bindgen_futures::JsFuture::from(promise);
-                spawn_local(async move {
-                    future.await.unwrap();
-                });
-                move || {
-                    element.pause().unwrap();
-                }
-            },
-            music,
-        );
-    }
-
-    {
-        use_effect_with_deps(
-            move |sound| {
-                let element = HtmlAudioElement::new_with_src(sound.as_str()).unwrap();
-                let promise = element.play().unwrap();
-                let future = wasm_bindgen_futures::JsFuture::from(promise);
-                spawn_local(async move {
-                    future.await.unwrap();
-                });
-                // Unlike music, sound does not pause
-                move || {}
-            },
-            sound,
-        );
-    }
 
     {
         let next_engine = next_engine;
@@ -140,66 +102,21 @@ pub fn play_view() -> Html {
         });
     };
 
+    let id = engine_response.borrow().as_ref().map(|res| res.id);
+    let ended = *ended.borrow();
     html! {
-        <div class="dflex dflex-grow-1" style="justify-content: center;">
-            if engine_response.borrow().is_none() {
-                <p>{"Press <enter> to start!"}</p>
+        <div class="dflex dflex-grow-1 dflex-gap-md" style="justify-content: center;">
+            if !ended {
+                if let Some(id) = id {
+                    <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", id) }/>
+                    <PlayMusic path={music.to_string()}/>
+                    <PlaySound path={sound.to_string()}/>
+                } else {
+                    <p>{"Press <enter> to start!"}</p>
+                }
             } else {
-                <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", engine_response.borrow().as_ref().unwrap().id) }/>
+                <p>{"Thank you for playing!"}</p>
             }
-
         </div>
-    }
-}
-
-#[derive(PartialEq, Properties)]
-pub struct SelectionProps {
-    pub onselect: Callback<String>,
-}
-
-#[function_component(Selection)]
-pub fn selection(props: &SelectionProps) -> Html {
-    let client = use_ref(Client::new);
-    let file = use_mut_ref(String::new);
-
-    let content = {
-        let file = file.clone();
-        use_async(async move {
-            let content = get_file(client, file.borrow().as_str()).await;
-            Ok::<_, ()>(content)
-        })
-    };
-
-    let onselect = {
-        let file = file.clone();
-        let content = content.clone();
-
-        Callback::from(move |selected_file: String| {
-            *file.borrow_mut() = selected_file;
-            content.run();
-        })
-    };
-
-    let onchange = use_mut_ref(String::new);
-    let props_onselect = props.onselect.clone();
-    let onclick = Callback::from(move |_| {
-        props_onselect.emit(file.borrow().to_string());
-    });
-
-    let content = content
-        .data
-        .clone()
-        .take()
-        .map(|content| if content.len() >= 4096 { "File is too large to load properly. This shouldn't matter if it is a valid script file".to_string()  } else { content })
-        .unwrap_or_default();
-
-    html! {
-        <>
-            <FileView {onselect}/>
-            <TextInput {content} on_change={onchange} readonly=true />
-            <div class="dflex dflex-col-reverse">
-                <Button {onclick} label="Run"/>
-            </div>
-        </>
     }
 }

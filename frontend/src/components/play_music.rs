@@ -1,4 +1,3 @@
-use regex::Regex;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlAudioElement;
 use yew::prelude::*;
@@ -13,13 +12,10 @@ pub struct Props {
 #[function_component(PlayMusic)]
 pub fn play_music(props: &Props) -> Html {
     let music = props.path.clone();
-    lazy_static::lazy_static! {
-        static ref RE: Regex = Regex::new(r"([\w -]+)\.").unwrap();
-    };
 
     let volume = props.volume;
     {
-        let music = music.clone();
+        let music = music;
         use_effect_update_with_deps(
             move |music| {
                 let element = HtmlAudioElement::new_with_src(music.as_str()).unwrap();
@@ -38,12 +34,5 @@ pub fn play_music(props: &Props) -> Html {
         );
     }
 
-    let music = RE
-        .captures_iter(&music)
-        .last()
-        .map(|captures| captures.get(1).unwrap().as_str())
-        .unwrap_or("");
-    html! {
-        <p>{format!("Currently Playing: {}", music)}</p>
-    }
+    html! {}
 }

@@ -6,6 +6,7 @@ use image_rpg::parser::{
     directives::{Directive, MusicPlay, SoundPlay},
     script::ScriptContext,
 };
+use regex::Regex;
 use reqwest::Client;
 use wasm_bindgen::{prelude::Closure, JsCast};
 use yew::{function_component, html, use_mut_ref, use_ref, use_state, Callback};
@@ -49,6 +50,10 @@ pub fn play() -> Html {
 
 #[function_component(PlayView)]
 pub fn play_view() -> Html {
+    lazy_static::lazy_static! {
+        static ref RE: Regex = Regex::new(r"([\w -]+)\.").unwrap();
+    };
+
     let client = use_ref(Client::new);
     let engine_response = use_mut_ref(Option::default);
     let choice = use_mut_ref(bool::default);
@@ -107,16 +112,25 @@ pub fn play_view() -> Html {
 
     let id = engine_response.borrow().as_ref().map(|res| res.id);
     let ended = *ended.borrow();
+    let music_name = RE
+        .captures_iter(&music.path)
+        .last()
+        .map(|captures| captures.get(1).unwrap().as_str())
+        .unwrap_or("");
+
     html! {
         <div class="dflex dflex-grow-1 dflex-gap-md" style="justify-content: center;">
+            <PlayMusic path={music.path.to_string()} volume={music.volume.unwrap_or(1.0)} />
+            <PlaySound path={sound.path.to_string()} volume={sound.volume.unwrap_or(1.0)} />
+
             if !ended {
                 if let Some(id) = id {
                     <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", id) }/>
-                    <PlayMusic path={music.path.to_string()} volume={music.volume.unwrap_or(1.0)} />
-                    <PlaySound path={sound.path.to_string()} volume={sound.volume.unwrap_or(1.0)}/>
+                    <p>{format!("Current playing: {}", music_name)}</p>
                 } else {
                     <p>{"Press <enter> to start!"}</p>
                 }
+
             } else {
                 <p>{"Thank you for playing!"}</p>
             }

@@ -33,4 +33,6 @@ features = ["Event",
             "DomTokenList", 
             "console", 
             "Document", 
-            "Element"]
+            "Element",
+            "KeyboardEvent",
+            "HtmlAudioElement"]

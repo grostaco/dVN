@@ -11,6 +11,8 @@ pub enum Directive {
     BgLoad(BgLoad),
     BgShow(BgShow),
     DialogueColor(DialogueColor),
+    SoundPlay(SoundPlay),
+    MusicPlay(MusicPlay),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -71,6 +73,20 @@ pub struct DialogueColor {
     green: u8,
     blue: u8,
     alpha: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[directive(keyword = "sound_play")]
+pub struct SoundPlay {
+    path: String,
+    volume: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[directive(keyword = "music_play")]
+pub struct MusicPlay {
+    path: String,
+    volume: Option<f64>,
 }
 
 // #[derive(Debug, Clone)]

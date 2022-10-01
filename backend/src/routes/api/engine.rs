@@ -33,13 +33,14 @@ pub fn engine_next(
     let mut guard = state.lock().unwrap();
 
     let engine = guard.as_mut().unwrap();
+
     engine.set_choice(choice);
     let context = engine.next().transpose()?;
     if context.is_none() {
         return Ok(None);
     }
 
-    let id = engine.render("assets/rendered/.cache").unwrap();
+    let id = engine.render("assets/rendered/.cache").unwrap_or(0);
     Ok(Some(Json(EngineResponse {
         id,
         context: context.unwrap(),

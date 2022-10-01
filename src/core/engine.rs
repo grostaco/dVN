@@ -298,6 +298,9 @@ impl Iterator for Engine {
                             [dc.red, dc.green, dc.blue, (255. * dc.alpha) as u8],
                         );
                     }
+                    _ => {
+                        info!("Ignored directive {:?}", directive);
+                    }
                 }
             }
         }

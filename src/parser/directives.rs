@@ -13,6 +13,7 @@ pub enum Directive {
     DialogueColor(DialogueColor),
     SoundPlay(SoundPlay),
     MusicPlay(MusicPlay),
+    Metadata(Metadata),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -87,6 +88,13 @@ pub struct SoundPlay {
 pub struct MusicPlay {
     path: String,
     volume: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[directive(keyword = "metadata")]
+pub struct Metadata {
+    key: String,
+    value: String,
 }
 
 // #[derive(Debug, Clone)]

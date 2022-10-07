@@ -1,15 +1,19 @@
+use std::collections::HashMap;
+
 use crate::{
     components::{IconText, Nav, PlayMusic, PlaySound, Selection},
     services::engine::{init_engine, next_engine},
 };
 use image_rpg::parser::{
-    directives::{Directive, MusicPlay, SoundPlay},
+    directives::{Directive, Metadata, MusicPlay, SoundPlay},
     script::ScriptContext,
 };
 use regex::Regex;
 use reqwest::Client;
 use wasm_bindgen::{prelude::Closure, JsCast};
-use yew::{function_component, html, use_mut_ref, use_ref, use_state, Callback};
+use yew::{
+    function_component, html, use_mut_ref, use_ref, use_state, virtual_dom::VNode, Callback,
+};
 use yew_hooks::{use_async, use_effect_once};
 
 #[function_component(Play)]
@@ -64,6 +68,7 @@ pub fn play_view() -> Html {
 
     let music = use_state(MusicPlay::default);
     let sound = use_state(SoundPlay::default);
+    let metadata = use_mut_ref(HashMap::<String, String>::default);
 
     let next_engine = {
         let client = client;
@@ -71,6 +76,7 @@ pub fn play_view() -> Html {
         let music = music.clone();
         let sound = sound.clone();
         let ended = ended.clone();
+        let metadata = metadata.clone();
         use_async(async move {
             loop {
                 *engine_response.borrow_mut() = next_engine(client.clone(), *choice.borrow()).await;
@@ -83,6 +89,10 @@ pub fn play_view() -> Html {
                             }
                             Directive::SoundPlay(soundplay) => {
                                 sound.set(soundplay.clone());
+                            }
+                            Directive::Metadata(Metadata { key, value }) => {
+                                log::info!("Received metadata of {key} and {value}");
+                                metadata.borrow_mut().insert(key.clone(), value.clone());
                             }
                             _ => {}
                         }
@@ -121,7 +131,18 @@ pub fn play_view() -> Html {
         .map(|captures| captures.get(1).unwrap().as_str())
         .unwrap_or("Nothing Currently Playing")
         .to_string();
+    let name = metadata
+        .borrow()
+        .get("name")
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| "Not Provided".to_string());
+    let description = metadata
+        .borrow()
+        .get("description")
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| "Not Provided".to_string());
 
+    // should probably be include_bytes!
     let volume_icon = html! {
         <svg xmlns="http://www.w3.org/2000/svg" version="1.0"  width="24" height="24" viewBox="0 0 75 75" class="text-bordered" style="padding: 10px;">
             <path d="M39.389,13.769 L22.235,28.606 L6,28.606 L6,47.699 L21.989,47.699 L39.389,62.75 L39.389,13.769z"
@@ -143,7 +164,6 @@ pub fn play_view() -> Html {
             </g>
         </svg>
     };
-
     html! {
         <div class="dflex dflex-grow-1 dflex-gap-md" style="justify-content: center;">
             <PlayMusic path={music.path.to_string()} volume={music.volume.unwrap_or(1.0)} />
@@ -154,8 +174,12 @@ pub fn play_view() -> Html {
                     <div>
                         <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", id)} style="border-width: 2px; border-style: solid; border-color: #181B2B"/>
                     </div>
-                    <div class="dflex dflex-col dflex-gap-sm">
-                        <IconText icon={game_icon} text={"Story's Name".to_string()}/>
+                    <div class="dflex dflex-col dflex-justify-between">
+                        <div class="dflex dflex-col dflex-gap-sm">
+                            <IconText icon={game_icon} text={name}/>
+                            <IconText icon={VNode::default()} text={"Description".to_string()}/>
+                            <div class="text-bordered" style="min-height: 10rem; max-width: 400px;">{description}</div>
+                        </div>
                         <IconText icon={volume_icon} text={music_name}/>
                     </div>
                 } else {

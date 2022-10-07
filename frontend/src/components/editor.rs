@@ -100,7 +100,7 @@ pub fn editor(props: &Props) -> Html {
     }
 
     let text = text.data.clone().unwrap_or_default();
-    let (text, readonly) = if text.len() > 4096 {
+    let (text, readonly) = if text.len() > 8192 {
         ("File too large to load properly. If this is an actual script file, consider refactoring it into multiple files with @jump.".to_string(), true)
     } else {
         (text, false)

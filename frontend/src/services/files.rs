@@ -21,7 +21,7 @@ pub async fn get_files(client: Rc<Client>) -> Vec<String> {
 pub async fn get_file(client: Rc<Client>, file: &str) -> String {
     client
         .get(format!("http://127.0.0.1:8000/{file}"))
-        .header("Content-Length", 4096)
+        .header("Content-Length", 8192)
         .send()
         .await
         .unwrap()

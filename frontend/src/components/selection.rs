@@ -43,7 +43,7 @@ pub fn selection(props: &Props) -> Html {
         .data
         .clone()
         .take()
-        .map(|content| if content.len() >= 4096 { "File is too large to load properly. This shouldn't matter if it is a valid script file".to_string()  } else { content })
+        .map(|content| if content.len() >= 8192 { "File is too large to load properly. This shouldn't matter if it is a valid script file".to_string()  } else { content })
         .unwrap_or_default();
 
     html! {

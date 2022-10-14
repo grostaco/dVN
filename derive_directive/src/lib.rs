@@ -1,7 +1,7 @@
 use parse::{inner_ident, is_option};
 use proc_macro::{TokenStream, TokenTree};
-use quote::quote;
 use proc_macro2::{Ident, Span};
+use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput, Fields, Type};
 
 use crate::parse::{get_kv, inner_option};
@@ -18,7 +18,11 @@ pub fn directive(args: TokenStream, input: TokenStream) -> TokenStream {
     let keyword = match kv.get("keyword") {
         Some(kw) => match &kw.value {
             TokenTree::Literal(literal) => literal.to_string(),
-            tt => return syn::Error::new(tt.span().into(), "Keyword must be a literal").into_compile_error().into(),
+            tt => {
+                return syn::Error::new(tt.span().into(), "Keyword must be a literal")
+                    .into_compile_error()
+                    .into()
+            }
         },
         None => {
             return syn::Error::new(ast.ident.span(), "Expected keyword attribute, none found")
@@ -30,7 +34,11 @@ pub fn directive(args: TokenStream, input: TokenStream) -> TokenStream {
     let verify = match kv.get("verify") {
         Some(kw) => match kw.value.clone() {
             TokenTree::Ident(ident) => Ident::new(&ident.to_string(), ident.span().into()),
-            tt => return syn::Error::new(tt.span().into(), "Expected ident").into_compile_error().into(),
+            tt => {
+                return syn::Error::new(tt.span().into(), "Expected ident")
+                    .into_compile_error()
+                    .into()
+            }
         },
         None => Ident::new("dummy", Span::call_site()),
     };
@@ -54,7 +62,7 @@ pub fn directive(args: TokenStream, input: TokenStream) -> TokenStream {
         (f_opt_idents, f_opt_tys),
         (f_nonopt_idents, f_nonopt_tys),
         (f_parse_idents, f_parse_tys),
-        (f_parseopt_idents, f_parseopt_tys)
+        (f_parseopt_idents, f_parseopt_tys),
     ) = match s.fields {
         Fields::Named(named) => {
             let mut idents = Vec::new();
@@ -70,11 +78,12 @@ pub fn directive(args: TokenStream, input: TokenStream) -> TokenStream {
 
                         let inner_ty = inner_option(ty).unwrap();
                         match inner_ident(inner_ty).unwrap().to_string().as_str() {
-                            "u8" | "i8" | "u16" | "i16" | "u32" | "i32" | "u64" | "i64" | "f32" | "f64" => {
+                            "u8" | "i8" | "u16" | "i16" | "u32" | "i32" | "u64" | "i64" | "f32"
+                            | "f64" => {
                                 // parsable_opt.push((field.ident.clone().unwrap(), ty.clone()))
                                 parsable_opt.push((field.ident.clone().unwrap(), inner_ty.clone()))
                             }
-                            _ => {},
+                            _ => {}
                         }
                         opt.push((field.ident.clone().unwrap(), ty.clone()))
                     }
@@ -150,7 +159,7 @@ pub fn directive(args: TokenStream, input: TokenStream) -> TokenStream {
                 Some(Ok(Self {
                     #(#f_nonopt_idents: #f_nonopt_idents,)*
                     #(#f_opt_idents: #f_opt_idents,)*
-                    
+
                 }))
             }
 
@@ -184,33 +193,40 @@ pub fn directive_enum(input: TokenStream) -> TokenStream {
         }
     };
 
-    let (f_variants, f_tys) = e.variants.into_iter().map(|v| (v.ident, match v.fields {
-        Fields::Unnamed(unnamed) => {
-            unnamed.unnamed.first().unwrap().ty.clone()
-        },
-        _ => todo!(),
-    })).unzip::<_, _, Vec<_>, Vec<_>>();
+    let (f_variants, f_tys) = e
+        .variants
+        .into_iter()
+        .map(|v| {
+            (
+                v.ident,
+                match v.fields {
+                    Fields::Unnamed(unnamed) => unnamed.unnamed.first().unwrap().ty.clone(),
+                    _ => todo!(),
+                },
+            )
+        })
+        .unzip::<_, _, Vec<_>, Vec<_>>();
     let tokens = quote! {
         impl #ident {
             pub fn parse(ctx: &std::primitive::str) -> std::option::Option<std::result::Result<Self, ::directive_errors::ParseError>> {
                use directive_errors::Directive;
-               #(if let Some(directive) = #f_tys::parse(ctx) { 
+               #(if let Some(directive) = #f_tys::parse(ctx) {
                     match directive {
                         Ok(directive) => return Some(
                             match directive.verify() {
                             Ok(_) => Ok(Self::#f_variants(directive)),
-                            Err(e) => Err(::directive_errors::ParseError::VerifyError(e)), 
+                            Err(e) => Err(::directive_errors::ParseError::VerifyError(e)),
                         }),
                         Err(e) => return Some(Err(e)),
                     }}
                 )*
-               None 
+               None
             }
         }
-        
+
     };
     tokens.into()
-} 
+}
 
 // #(let #f_float_idents = match #f_float_idents.map(|i| i.parse::<#f_float_tys>()) {
 //     Some(Err(e)) => return Some(Err(ParseError::CannotParse(format!("\"{}\"", #f_float_idents.unwrap().to_string()), stringify!(#f_float_tys).to_string(), e.to_string()))),

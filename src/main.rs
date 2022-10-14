@@ -1,7 +1,5 @@
 mod core;
-mod parser;
+pub mod parser;
 mod render;
 
-fn main () {
-    
-}
+fn main() {}

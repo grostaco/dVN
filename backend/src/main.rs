@@ -7,7 +7,7 @@ use log4rs::{
     encode::pattern::PatternEncoder,
     Config,
 };
-use rocket::fs::{FileServer, Options};
+use rocket::fs::FileServer;
 
 mod routes;
 use routes::api::*;
@@ -45,14 +45,6 @@ fn rocket() -> _ {
     log4rs::init_config(config).unwrap();
 
     rocket::build()
-        // .mount(
-        //     "/",
-        //     FileServer::new("backend/static", Options::Index).rank(1),
-        // )
-        // .mount(
-        //     "/play",
-        //     FileServer::new("backend/static/index.html", Options::IndexFile),
-        // )
         .mount("/assets", FileServer::from("assets").rank(2))
         .mount(
             "/api",

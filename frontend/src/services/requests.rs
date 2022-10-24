@@ -1,12 +1,9 @@
 use std::fmt::Debug;
 
-use dotenv_codegen::dotenv;
 use reqwest::{Client, Method, StatusCode};
 use serde::{de::DeserializeOwned, Serialize};
 
 use super::error::{Error, ErrorInfo};
-
-const API_ROOT: &str = dotenv!("API_ROOT");
 
 macro_rules! request {
     (get -> $url:expr) => {
@@ -30,7 +27,8 @@ where
     B: Serialize + Debug,
 {
     let allow_body = matches!(method, Method::POST | Method::PUT);
-    let url = format!("{}{}", API_ROOT, url);
+    let baseurl = web_sys::window().unwrap().origin();
+    let url = format!("{baseurl}{url}");
 
     let mut builder = Client::new()
         .request(method, url)
@@ -62,9 +60,12 @@ where
                     Err(_) => Err(Error::DeserializeError),
                 }
             }
-            _ => Err(Error::RequestError),
+            code => {
+                log::error!("Log error: {code:#?}");
+                Err(Error::RequestError(code))
+            }
         }
     } else {
-        Err(Error::RequestError)
+        Err(Error::RequestError(StatusCode::NOT_FOUND))
     }
 }

@@ -8,7 +8,8 @@ use yew::{html, Callback, Html};
 use super::{error::Result, requests::request};
 
 pub async fn get_files() -> Result<FileFiles> {
-    request!(get -> "/api/files").await
+    let res = request!(get -> "/api/files").await;
+    res
 }
 
 pub async fn get_file(file: &str) -> String {
@@ -76,80 +77,3 @@ pub fn file_tree(
         </>
     }
 }
-
-// #[cfg(test)]
-// mod test {
-//     use std::path::Path;
-
-//     use yew::{html, Html};
-
-//     fn file_tree(files: Vec<&'_ Path>) -> Html {
-//         println!("called with: {:?}", files);
-//         let mut folders = Vec::new();
-//         let mut folder_files = Vec::new();
-
-//         let mut i = 1;
-//         while i < files.len() {
-//             let file = files.get(i).unwrap();
-//             if file.extension().is_none() {
-//                 // let mut sub_files = Vec::new();
-//                 // sub_files.push()
-//                 let sub_files = files
-//                     .iter()
-//                     .skip(i)
-//                     .take_while(|p| {
-//                         //println!("{:?} {:?} {}", p, file, p.starts_with(file));
-//                         p.starts_with(file)
-//                     })
-//                     .copied()
-//                     .collect::<Vec<_>>();
-
-//                 //println!("sub_files: {:?}", sub_files);
-//                 i += sub_files.len() - 1;
-//                 println!("skipped to: {}", i);
-//                 folders.push(file_tree(sub_files));
-//             } else {
-//                 //println!("{:?} {:?}", file, files);
-//                 folder_files
-//                     .push(html! { <div>{file.file_name().unwrap().to_str().unwrap()}</div> });
-//             }
-
-//             i += 1;
-//         }
-//         //println!("{:?}", files);
-//         // for (i, file) in files.iter().enumerate() {
-
-//         // }
-
-//         html! {
-//             <>
-//             if let Some(file) = files.first() {
-//                 <div class="name">{ file.to_str().unwrap() }</div>
-//                 <div class="children">
-//                     if !folders.is_empty() {
-//                         <div class="folder">
-//                             {for folders}
-//                         </div>
-//                     }
-
-//                     if !folder_files.is_empty() {
-//                         <div class="files">
-//                             {for folder_files}
-//                         </div>
-//                     }
-//                 </div>
-//             }
-//             </>
-//         }
-//     }
-
-//     #[test]
-//     fn file_tree_test() {
-//         let files = r"foo,foo/a,foo/a/a.txt,foo/a/b.txt,foo/c,foo/c/c.txt,foo/b.txt"
-//             .split(',')
-//             .map(Path::new)
-//             .collect::<Vec<_>>();
-//         file_tree(files);
-//         //println!("{:#?}", file_tree(files, &mut s));
-//     }
-// }

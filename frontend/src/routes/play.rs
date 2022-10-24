@@ -225,9 +225,9 @@ pub fn play_view() -> Html {
             <PlaySound path={sound.path.to_string()} volume={sound.volume.unwrap_or(1.0)} />
 
             if !ended {
-                if let Some(id) = id {
+                if let Some(_id) = id {
                     <div>
-                        <img alt="preview" id="play-preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", id)} style="border-width: 2px; border-style: solid; border-color: #181B2B"/>
+                        <img alt="preview" id="play-preview" src="" style="border-width: 2px; border-style: solid; border-color: #181B2B"/>
                     </div>
                     <div class="dflex dflex-col dflex-justify-between">
                         <div class="dflex dflex-col dflex-gap-sm">

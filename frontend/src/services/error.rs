@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use thiserror::Error as ThisError;
 
@@ -31,7 +32,7 @@ pub enum Error {
     DeserializeError,
 
     #[error("Http Request Error")]
-    RequestError,
+    RequestError(StatusCode),
 }
 
 pub type Result<T> = core::result::Result<T, Error>;

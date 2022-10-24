@@ -31,9 +31,6 @@ pub struct Renderer {
     pub text: Size,
 }
 
-#[derive(Clone, Debug, Default)]
-pub struct RenderOption {}
-
 impl Size {
     pub fn new(xmin: u32, xmax: u32, ymin: u32, ymax: u32) -> Self {
         Self {

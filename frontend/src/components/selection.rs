@@ -1,4 +1,3 @@
-use reqwest::Client;
 use yew::prelude::*;
 use yew_hooks::use_async;
 
@@ -12,13 +11,12 @@ pub struct Props {
 
 #[function_component(Selection)]
 pub fn selection(props: &Props) -> Html {
-    let client = use_ref(Client::new);
     let file = use_mut_ref(String::new);
 
     let content = {
         let file = file.clone();
         use_async(async move {
-            let content = get_file(client, file.borrow().as_str()).await;
+            let content = get_file(file.borrow().as_str()).await;
             Ok::<_, ()>(content)
         })
     };

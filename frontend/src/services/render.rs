@@ -1,33 +1,18 @@
-use std::rc::Rc;
+use backend_types::{RenderPreview, RenderResult, RenderResultRequest};
 
-use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use super::{error::Result, requests::request};
 
-#[derive(Serialize, Deserialize, PartialEq, Default, Clone, Debug)]
-pub struct RenderResult {
-    pub code: u64,
-    pub log: Vec<u8>,
-    pub data: Vec<u64>,
+pub async fn get_preview(id: u64) -> Result<RenderPreview> {
+    request!(get -> &format!("/api/rendered/{id}/preview.png")).await
+}
+pub async fn post_render(script: String) -> Result<RenderResult> {
+    let render = request!(post -> "/api/render" ; RenderResultRequest {
+        data: script.into_bytes(),
+    } )
+    .await;
+    render
 }
 
-pub async fn post_render(client: Rc<Client>, script: String) -> RenderResult {
-    let content = client
-        .post("http://127.0.0.1:8000/api/render")
-        .body(script)
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap();
-    //info!("content: {content}");
-    serde_json::from_str(&content).unwrap()
-}
-
-pub async fn delete_cache(client: Rc<Client>) {
-    client
-        .delete("http://127.0.0.1:8000/api/render")
-        .send()
-        .await
-        .unwrap();
+pub async fn delete_cache() {
+    request!(delete -> "/api/render").await.unwrap()
 }

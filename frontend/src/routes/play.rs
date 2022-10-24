@@ -2,8 +2,12 @@ use std::collections::HashMap;
 
 use crate::{
     components::{IconText, Nav, PlayMusic, PlaySound, Selection},
-    services::engine::{init_engine, next_engine},
+    services::{
+        engine::{init_engine, next_engine},
+        render::get_preview,
+    },
 };
+use backend_types::EngineNext;
 use image_rpg::parser::{
     directives::{Directive, Metadata, MusicPlay, SoundPlay},
     script::ScriptContext,
@@ -11,8 +15,10 @@ use image_rpg::parser::{
 use regex::Regex;
 use reqwest::Client;
 use wasm_bindgen::{prelude::Closure, JsCast};
+use web_sys::HtmlImageElement;
 use yew::{
-    function_component, html, use_mut_ref, use_ref, use_state, virtual_dom::VNode, Callback,
+    function_component, html, use_effect_with_deps, use_mut_ref, use_ref, use_state,
+    virtual_dom::VNode, Callback,
 };
 use yew_hooks::{use_async, use_effect_once};
 
@@ -81,8 +87,9 @@ pub fn play_view() -> Html {
             loop {
                 *engine_response.borrow_mut() = next_engine(client.clone(), *choice.borrow()).await;
 
-                if let Some(response) = engine_response.borrow().as_ref() {
-                    if let ScriptContext::Directive(directive) = &response.context {
+                if let Some(EngineNext::Content { id, context }) = engine_response.borrow().as_ref()
+                {
+                    if let ScriptContext::Directive(directive) = context {
                         match directive {
                             Directive::MusicPlay(musicplay) => {
                                 music.set(musicplay.clone());
@@ -97,7 +104,7 @@ pub fn play_view() -> Html {
                             _ => {}
                         }
                     }
-                    if response.id != 0 {
+                    if *id != 0 {
                         break;
                     }
                 } else {
@@ -123,7 +130,14 @@ pub fn play_view() -> Html {
         });
     };
 
-    let id = engine_response.borrow().as_ref().map(|res| res.id);
+    let id = engine_response.borrow().as_ref().map(|res| {
+        if let EngineNext::Content { id, .. } = res {
+            *id
+        } else {
+            0
+        }
+    });
+
     let ended = *ended.borrow();
     let music_name = RE
         .captures_iter(&music.path)
@@ -164,6 +178,47 @@ pub fn play_view() -> Html {
             </g>
         </svg>
     };
+
+    let preview = {
+        let id = id;
+
+        use_async(async move { get_preview(id.unwrap_or(0)).await })
+    };
+
+    {
+        let preview = preview.clone();
+        let id = id;
+        use_effect_with_deps(
+            move |_| {
+                preview.run();
+
+                || ()
+            },
+            id,
+        );
+    }
+
+    {
+        let preview = preview;
+
+        use_effect_with_deps(
+            move |preview| {
+                if let Some(preview) = &preview.data {
+                    let preview_element: HtmlImageElement = gloo::utils::document()
+                        .get_element_by_id("play-preview")
+                        .unwrap()
+                        .dyn_into()
+                        .unwrap();
+                    let preview_encoded = base64::encode(&preview.bytes);
+                    preview_element.set_src(&format!("data:image/png;base64,{preview_encoded}"));
+                }
+
+                || ()
+            },
+            preview,
+        );
+    }
+
     html! {
         <div class="dflex dflex-grow-1 dflex-gap-md" style="justify-content: center;">
             <PlayMusic path={music.path.to_string()} volume={music.volume.unwrap_or(1.0)} />
@@ -172,15 +227,15 @@ pub fn play_view() -> Html {
             if !ended {
                 if let Some(id) = id {
                     <div>
-                        <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", id)} style="border-width: 2px; border-style: solid; border-color: #181B2B"/>
+                        <img alt="preview" id="play-preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", id)} style="border-width: 2px; border-style: solid; border-color: #181B2B"/>
                     </div>
                     <div class="dflex dflex-col dflex-justify-between">
                         <div class="dflex dflex-col dflex-gap-sm">
                             <IconText icon={game_icon} text={name}/>
                             <IconText icon={VNode::default()} text={"Description".to_string()}/>
                             <div class="text-bordered" style="min-height: 10rem; max-width: 400px;">{description}</div>
+                            <IconText icon={volume_icon} text={music_name}/>
                         </div>
-                        <IconText icon={volume_icon} text={music_name}/>
                     </div>
                 } else {
                     <p>{"Press <enter> to start!"}</p>

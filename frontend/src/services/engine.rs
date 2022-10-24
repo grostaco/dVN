@@ -1,8 +1,7 @@
-use image_rpg::parser::script::ScriptContext;
+use backend_types::EngineNext;
 use reqwest::{Client, StatusCode};
-use serde::Deserialize;
-use std::rc::Rc;
 
+use std::rc::Rc;
 pub async fn init_engine(client: Rc<Client>, script_file: String) {
     client
         .post("http://127.0.0.1:8000/api/engine/init")
@@ -12,13 +11,7 @@ pub async fn init_engine(client: Rc<Client>, script_file: String) {
         .unwrap();
 }
 
-#[derive(Deserialize)]
-pub struct EngineResponse {
-    pub id: u64,
-    pub context: ScriptContext,
-}
-
-pub async fn next_engine(client: Rc<Client>, choice: bool) -> Option<EngineResponse> {
+pub async fn next_engine(client: Rc<Client>, choice: bool) -> Option<EngineNext> {
     let response = client
         .post("http://127.0.0.1:8000/api/engine/next")
         .query(&[("choice", choice)])
@@ -29,6 +22,6 @@ pub async fn next_engine(client: Rc<Client>, choice: bool) -> Option<EngineRespo
         return None;
     }
 
-    let result: EngineResponse = serde_json::from_str(&response.text().await.unwrap()).unwrap();
+    let result: EngineNext = serde_json::from_str(&response.text().await.unwrap()).unwrap();
     Some(result)
 }

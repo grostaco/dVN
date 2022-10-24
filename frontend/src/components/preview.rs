@@ -1,9 +1,10 @@
-use reqwest::Client;
-use yew::{function_component, html, use_ref, use_state, Callback, Properties};
-use yew_hooks::use_async;
+use wasm_bindgen::JsCast;
+use web_sys::HtmlImageElement;
+use yew::{function_component, html, use_effect_with_deps, use_state, Callback, Properties};
+use yew_hooks::{use_async, use_async_with_options, UseAsyncOptions};
 
 use super::Button;
-use crate::services::render::delete_cache;
+use crate::services::render::{delete_cache, get_preview};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -13,7 +14,6 @@ pub struct Props {
 #[function_component(Preview)]
 pub fn preview(props: &Props) -> Html {
     let index = use_state(|| 0);
-    let client = use_ref(Client::new);
     let len = props.data.len();
 
     let prev = {
@@ -28,7 +28,7 @@ pub fn preview(props: &Props) -> Html {
 
     let delete_cache = {
         use_async(async move {
-            delete_cache(client).await;
+            delete_cache().await;
 
             Ok::<_, ()>(())
         })
@@ -37,13 +37,55 @@ pub fn preview(props: &Props) -> Html {
     let onclick_clear = { Callback::from(move |_| delete_cache.run()) };
 
     let data = &props.data;
+    let preview = {
+        let data = data.clone();
+        let index = index.clone();
+        use_async_with_options(
+            async move { get_preview(*data.get(*index).unwrap_or(&0)).await },
+            UseAsyncOptions::default(),
+        )
+    };
+
+    {
+        let preview = preview.clone();
+        let data = data.clone();
+        use_effect_with_deps(
+            move |_| {
+                preview.run();
+
+                || ()
+            },
+            (index, data),
+        );
+    }
+
+    {
+        let preview = preview;
+
+        use_effect_with_deps(
+            move |preview| {
+                if let Some(preview) = &preview.data {
+                    let preview_element: HtmlImageElement = gloo::utils::document()
+                        .get_element_by_id("preview")
+                        .unwrap()
+                        .dyn_into()
+                        .unwrap();
+                    let preview_encoded = base64::encode(&preview.bytes);
+                    preview_element.set_src(&format!("data:image/png;base64,{preview_encoded}"));
+                }
+
+                || ()
+            },
+            preview,
+        );
+    }
 
     html! {
         <div class="dflex dflex-row">
             if data.is_empty()  {
                 <p>{"Nothing rendered yet!"}</p>
             } else {
-                <img alt="preview" src={format!("http://127.0.0.1:8000/api/rendered/{}/preview.png", data.get(*index).unwrap_or(&0))}/>
+                <img alt="preview" id="preview" src=""/>
                 <div class="dflex dflex-gap-sm dflex-col-reverse">
                     <Button label="Clear Cache" onclick={onclick_clear}/>
                     <Button label="Prev" onclick={prev}/>

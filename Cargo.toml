@@ -25,4 +25,4 @@ features = ["derive"]
 path = "src/lib.rs"
 
 [workspace]
-members = ["derive_directive", "directive_errors", "backend", "frontend"]
+members = ["derive_directive", "directive_errors", "backend", "frontend", "backend_types"]

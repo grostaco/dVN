@@ -1,12 +1,12 @@
 use super::{Button, FileView, TextInput};
 use crate::services::{
     files::{get_file, post_file},
-    render::{post_render, RenderResult},
+    render::post_render,
 };
-use reqwest::Client;
+use backend_types::RenderResult;
+
 use yew::{
-    function_component, html, use_effect_with_deps, use_mut_ref, use_ref, use_state, Callback,
-    Properties,
+    function_component, html, use_effect_with_deps, use_mut_ref, use_state, Callback, Properties,
 };
 use yew_hooks::use_async;
 
@@ -17,17 +17,18 @@ pub struct Props {
 
 #[function_component(Editor)]
 pub fn editor(props: &Props) -> Html {
-    let client = use_ref(Client::new);
     let script = use_mut_ref(String::new);
-    let render_result = use_state(RenderResult::default);
+    let render_result = use_state(|| RenderResult {
+        data: Vec::new(),
+        log: Vec::new(),
+    });
     let file = use_mut_ref(|| "assets/tmp.script".to_string());
 
     let text = {
         let file = file.clone();
-        let client = client.clone();
         let script = script.clone();
         use_async(async move {
-            let content = get_file(client, file.borrow().as_str()).await;
+            let content = get_file(file.borrow().as_str()).await;
             *script.borrow_mut() = content.clone();
             Ok::<_, ()>(content)
         })
@@ -36,10 +37,11 @@ pub fn editor(props: &Props) -> Html {
     let save = {
         let file = file.clone();
         let script = script.clone();
-        let client = client.clone();
         use_async(async move {
             log::info!("Saving {}'s content:\n{}", *file.borrow(), *script.borrow());
-            post_file(client, file.borrow().as_str(), script.borrow().to_string()).await;
+            post_file(file.borrow().as_str(), script.borrow().to_string())
+                .await
+                .unwrap();
             Ok::<_, ()>(())
         })
     };
@@ -60,7 +62,13 @@ pub fn editor(props: &Props) -> Html {
         let to_compile = to_compile.clone();
         let render_result = render_result.clone();
         use_async(async move {
-            render_result.set(post_render(client, (*to_compile).to_string()).await);
+            render_result.set(match post_render((*to_compile).to_string()).await {
+                Ok(r) => r,
+                Err(e) => {
+                    log::error!("Error while post render: {e:#?}");
+                    panic!()
+                }
+            });
             Ok::<_, ()>(())
         })
     };

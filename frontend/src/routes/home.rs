@@ -1,12 +1,13 @@
+use backend_types::RenderResult;
 use yew::{function_component, html, use_state, Callback};
 
-use crate::{
-    components::{Editor, Logs, Nav, Preview},
-    services::render::RenderResult,
-};
+use crate::components::{Editor, Logs, Nav, Preview};
 #[function_component(Home)]
 pub fn home() -> Html {
-    let render_result = use_state(RenderResult::default);
+    let render_result = use_state(|| RenderResult {
+        data: Vec::new(),
+        log: Vec::new(),
+    });
     let editor_onchange = {
         let render_result = render_result.clone();
         Callback::from(move |result| render_result.set(result))

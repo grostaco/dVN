@@ -4,25 +4,28 @@ use std::{
     path::Path,
 };
 
+use backend_types::*;
 use image_rpg::core::engine::Engine;
 use rocket::{
-    serde::json::serde_json::json,
-    tokio::{
-        fs::{create_dir, remove_dir_all},
-        io,
-    },
+    serde::json::Json,
+    tokio::fs::{create_dir, remove_dir_all},
 };
 
 #[get("/rendered/<id>/preview.png")]
-pub fn image_preview(id: u64) -> std::io::Result<Vec<u8>> {
+pub fn image_preview(id: u64) -> Result<RenderPreview> {
     let p = Path::new("assets/rendered/.cache")
         .join(id.to_string())
         .with_extension("png");
-    fs::read(p)
+    let bytes = fs::read(p);
+
+    match bytes {
+        Ok(bytes) => ErrorOr::json_response_from(RenderPreview { bytes }),
+        Err(e) => ErrorOr::json_error_from(e),
+    }
 }
 
-#[post("/render", data = "<content>")]
-pub fn render(content: &str) -> String {
+#[post("/render", format = "json", data = "<content>")]
+pub fn render(content: Json<RenderResultRequest>) -> Result<RenderResult> {
     let p = Path::new("assets/autogen_script.script");
     OpenOptions::new()
         .create(true)
@@ -30,12 +33,11 @@ pub fn render(content: &str) -> String {
         .truncate(true)
         .open(p)
         .unwrap()
-        .write_all(content.as_bytes())
+        .write_all(&content.0.data)
         .unwrap();
     let mut engine = match Engine::new(p.to_str().unwrap()) {
         Ok(engine) => engine,
-        // 300 is most definitely NOT the right code
-        Err(e) => return json!({"code": 300, "reason": e.to_string()}).to_string(),
+        Err(e) => return ErrorOr::json_error_from(e),
     };
     let mut ids = Vec::new();
     while let Some(result) = engine.next() {
@@ -45,19 +47,28 @@ pub fn render(content: &str) -> String {
                     ids.push(hsh)
                 }
             }
-            Err(_) => return json!({"code": 300, "data": [], "log": read_consume("log/requests.log").as_bytes()}).to_string(),
+            Err(_) => {
+                break;
+            }
         }
     }
-    json!({"code": 200, "data": ids, "log": read_consume("log/requests.log").as_bytes()})
-        .to_string()
+
+    ErrorOr::json_response_from(RenderResult {
+        data: ids,
+        log: read_consume("log/requests.log").as_bytes().to_vec(),
+    })
 }
 
 #[delete("/render")]
-pub async fn clear_rendered() -> io::Result<()> {
-    remove_dir_all("assets/rendered/.cache").await.unwrap();
-    create_dir("assets/rendered/.cache").await.unwrap();
+pub async fn clear_rendered() -> Result<RenderClear> {
+    if let Err(e) = remove_dir_all("assets/rendered/.cache").await {
+        return ErrorOr::json_error_from(e);
+    }
+    if let Err(e) = create_dir("assets/rendered/.cache").await {
+        return ErrorOr::json_error_from(e);
+    }
 
-    Ok(())
+    ErrorOr::json_response_from(())
 }
 
 fn read_consume<P: AsRef<Path>>(path: P) -> String {

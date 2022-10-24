@@ -1,48 +1,65 @@
 use image_rpg::core::engine::Engine;
-use image_rpg::parser::{error::Error, script::ScriptContext};
 use rocket::serde::json::Json;
-use rocket::serde::Serialize;
 use std::sync::Mutex;
 
+use backend_types::*;
 use rocket::State;
 
-#[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct EngineResponse {
-    id: u64,
-    context: ScriptContext,
-}
-
 #[post("/engine/init?<script>")]
-pub fn engine_init(
-    script: String,
-    state: &State<Mutex<Option<Engine>>>,
-) -> Result<(), std::io::Error> {
+pub fn engine_init(script: String, state: &State<Mutex<Option<Engine>>>) -> Result<EngineInit> {
     let mut guard = state.lock().unwrap();
 
-    *guard = Some(Engine::new(&script)?);
+    *guard = Some(match Engine::new(&script) {
+        Ok(engine) => engine,
+        Err(e) => {
+            return Json(ErrorOr::Error(Error {
+                message: e.to_string(),
+            }))
+        }
+    });
 
-    Ok(())
+    Json(ErrorOr::Response(()))
 }
 
 #[post("/engine/next?<choice>")]
-pub fn engine_next(
-    choice: bool,
-    state: &State<Mutex<Option<Engine>>>,
-) -> Result<Option<Json<EngineResponse>>, rocket::response::Debug<Error>> {
+pub fn engine_next(choice: bool, state: &State<Mutex<Option<Engine>>>) -> Result<EngineNext> {
     let mut guard = state.lock().unwrap();
 
     let engine = guard.as_mut().unwrap();
 
     engine.set_choice(choice);
-    let context = engine.next().transpose()?;
-    if context.is_none() {
-        return Ok(None);
+    match engine.next() {
+        Some(context) => match context {
+            Ok(context) => Json(ErrorOr::Response(EngineNext::Content {
+                id: engine.render("assets/rendered/.cache").unwrap_or(0),
+                context,
+            })),
+            Err(e) => Json(ErrorOr::Error(Error {
+                message: e.cause.to_string(),
+            })),
+        },
+        None => Json(ErrorOr::Response(EngineNext::Ended)),
     }
-
-    let id = engine.render("assets/rendered/.cache").unwrap_or(0);
-    Ok(Some(Json(EngineResponse {
-        id,
-        context: context.unwrap(),
-    })))
 }
+
+// #[post("/engine/next?<choice>")]
+// pub fn engine_next(
+//     choice: bool,
+//     state: &State<Mutex<Option<Engine>>>,
+// ) -> Result<Option<Json<EngineResponse>>, rocket::response::Debug<Error>> {
+//     let mut guard = state.lock().unwrap();
+
+//     let engine = guard.as_mut().unwrap();
+
+//     engine.set_choice(choice);
+//     let context = engine.next().transpose()?;
+//     if context.is_none() {
+//         return Ok(None);
+//     }
+
+//     let id = engine.render("assets/rendered/.cache").unwrap_or(0);
+//     Ok(Some(Json(EngineResponse {
+//         id,
+//         context: context.unwrap(),
+//     })))
+// }

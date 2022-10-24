@@ -11,7 +11,7 @@ yew = "0.19.3"
 js-sys = "0.3.46"
 wasm-bindgen = "0.2"
 wasm-logger = "0.2.0"
-reqwest = { version = "0.11.11"}
+reqwest = { version = "0.11.11", features = ["json"] }
 wasm-bindgen-futures = "0.4.31"
 serde = "1.0.139" 
 serde_json = "1.0.82" 
@@ -23,6 +23,9 @@ gloo = "0.8.0"
 gloo-timers = "0.2.4"
 yew-router = "0.16"
 image_rpg = { path = ".." }
+dotenv_codegen = "0.15.0"
+backend_types = { path = "../backend_types" }
+base64 = "0.13.1"
 
 [dependencies.web-sys]
 version = "0.3"
@@ -35,4 +38,6 @@ features = ["Event",
             "Document", 
             "Element",
             "KeyboardEvent",
-            "HtmlAudioElement"]
+            "HtmlAudioElement",
+            "HtmlImageElement"
+            ]

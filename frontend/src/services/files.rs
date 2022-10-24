@@ -1,25 +1,18 @@
-use std::{path::Path, rc::Rc};
+use std::path::Path;
 
+use backend_types::{FileFiles, FilePost, FilePostRequest};
 use reqwest::Client;
 use web_sys::MouseEvent;
 use yew::{html, Callback, Html};
 
-pub async fn get_files(client: Rc<Client>) -> Vec<String> {
-    client
-        .get("http://127.0.0.1:8000/api/files")
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap()
-        .split(',')
-        .map(ToOwned::to_owned)
-        .collect()
+use super::{error::Result, requests::request};
+
+pub async fn get_files() -> Result<FileFiles> {
+    request!(get -> "/api/files").await
 }
 
-pub async fn get_file(client: Rc<Client>, file: &str) -> String {
-    client
+pub async fn get_file(file: &str) -> String {
+    Client::new()
         .get(format!("http://127.0.0.1:8000/{file}"))
         .header("Content-Length", 8192)
         .send()
@@ -30,15 +23,8 @@ pub async fn get_file(client: Rc<Client>, file: &str) -> String {
         .unwrap()
 }
 
-pub async fn post_file(client: Rc<Client>, file: &str, content: String) -> String {
-    client
-        .post(format!("http://127.0.0.1:8000/api/file/{file}"))
-        .body(content)
-        .send()
-        .await
-        .unwrap();
-
-    String::new()
+pub async fn post_file(file: &str, content: String) -> Result<FilePost> {
+    request!(post -> &format!("/api/file/{file}") ; FilePostRequest { content } ).await
 }
 
 pub fn file_tree(

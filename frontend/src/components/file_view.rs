@@ -1,10 +1,9 @@
 use super::Loading;
 use crate::services::files::{file_tree, get_files};
-use reqwest::Client;
 use std::path::Path;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlDivElement, MouseEvent};
-use yew::{function_component, html, use_ref, Callback, Properties};
+use yew::{function_component, html, Callback, Properties};
 use yew_hooks::{use_async_with_options, UseAsyncOptions};
 
 #[derive(Properties, PartialEq)]
@@ -14,8 +13,6 @@ pub struct Props {
 
 #[function_component(FileView)]
 pub fn file_view(props: &Props) -> Html {
-    let client = use_ref(Client::new);
-
     let expand = Callback::from(|m: MouseEvent| {
         let event_target = m.target().unwrap();
         let target: HtmlDivElement = event_target.dyn_into().unwrap();
@@ -39,7 +36,7 @@ pub fn file_view(props: &Props) -> Html {
 
     let files = use_async_with_options(
         async move {
-            let files = get_files(client).await;
+            let files = get_files().await.unwrap().files;
             Ok::<_, ()>(file_tree(
                 files.iter().map(Path::new).collect(),
                 &expand,
